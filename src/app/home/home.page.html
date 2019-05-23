@@ -1,0 +1,74 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>
+      Ionic 4 Geolocation & Geocoder
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-card class="welcome-card">
+    <ion-img src="/assets/shapes.svg"></ion-img>
+    <ion-card-header>
+      <ion-card-subtitle>Get Started</ion-card-subtitle>
+      <ion-card-title>Welcome to Ionic</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <!--<div id="map_canvas"></div>-->
+    </ion-card-content>
+  </ion-card>
+
+  
+
+  <ion-list>
+test
+{{data}}
+    <ion-item button *ngFor="let item of data">
+      <ion-avatar slot="start">
+        <img [src]="item.Poster" *ngIf="item.Poster != 'N/A'">
+      </ion-avatar>
+
+      <ion-label text-wrap>
+        <h3>{{ item.Cat }}</h3>
+        {{ item.Notes }}
+        <a href='item.Web'>{{ item.Org }}</a>
+      </ion-label>
+
+    </ion-item>
+
+  </ion-list>
+
+  <h1>Get Location</h1>
+
+
+
+  <ion-button (click)="getGeolocation()">
+    Get Location
+  </ion-button>
+  <ion-button (click)="watchLocation()">
+    Watch Location Updates
+  </ion-button>
+  <ion-button (click)="stopLocationWatch()">
+    Stop Location Watch
+  </ion-button>
+
+  <div *ngIf="geoLatitude">
+    <p>Latitude : {{geoLatitude}}</p>
+    <p>Longitude : {{geoLongitude}}</p>
+    <p>Accuracy : {{geoAccuracy}}</p>
+    <p class="address-text">
+
+      <span class="watch-text" *ngIf="isWatching; else notWatching">
+        Watching Location
+      </span>
+      <ng-template #notWatching>
+        Location Watch Stopped
+      </ng-template>
+
+      <br>Address : {{geoAddress }}
+    </p>
+  </div>
+</ion-content>

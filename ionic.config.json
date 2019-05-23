@@ -1,0 +1,8 @@
+{
+  "name": "Food4NY",
+  "integrations": {
+    "cordova": {}
+  },
+  "type": "angular",
+  "id": "a88e9d47"
+}
