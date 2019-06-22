@@ -83,8 +83,7 @@
     <plugin name="cordova-plugin-ionic-webview" spec="^4.0.0" />
     <plugin name="cordova-plugin-ionic-keyboard" spec="^2.0.5" />
     <plugin name="cordova-plugin-googlemaps" spec="2.6.2" />
-    <preference name="GOOGLE_MAPS_ANDROID_API_KEY" value="AIzaSyDelpzz9d8hd0FzPufXsx4QcY1v6sUdgvI" />
-    <preference name="GOOGLE_MAPS_IOS_API_KEY" value="AIzaSyDelpzz9d8hd0FzPufXsx4QcY1v6sUdgvI" />
+    
     <plugin name="cordova-plugin-geolocation" spec="4.0.1">
         <variable name="GEOLOCATION_USAGE_DESCRIPTION" value="To locate you" />
     </plugin>

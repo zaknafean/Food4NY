@@ -17,9 +17,9 @@ export enum SearchType {
 }
 
 const API_STORAGE_KEY = 'specialkey';
-//const API_URL = 'https://reqres.in/api';
+// const API_URL = 'https://reqres.in/api';
 
-//const API_URL = 'https://sicmfood.com/foodmap10.php';
+// const API_URL = 'https://sicmfood.com/foodmap10.php';
 const API_URL = '/goto/foodmap10.php';
 
 
