@@ -59,10 +59,8 @@ export class HomePage implements OnInit {
   }
 
   ngOnInit() {
-    // Since ngOnInit() is executed before `deviceready` event,
-    // you have to wait the event.
     this.platform.ready().then(() => {
-      this.loadMap();
+      // this.loadMap();
       this.loadData(true);
     });
   }

@@ -1,9 +1,9 @@
+
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+
 import { Storage } from '@ionic/storage';
-
-
+import { Observable, from } from 'rxjs';
 import { tap, map, catchError } from 'rxjs/operators';
 
 
@@ -17,6 +17,11 @@ export enum SearchType {
 }
 
 const API_STORAGE_KEY = 'specialkey';
+//const API_URL = 'https://reqres.in/api';
+
+//const API_URL = 'https://sicmfood.com/foodmap10.php';
+const API_URL = '/goto/foodmap10.php';
+
 
 @Injectable({
   providedIn: 'root'
@@ -24,7 +29,6 @@ const API_STORAGE_KEY = 'specialkey';
 
 export class ApicallerService {
 
-  url = 'https://sicmfood.com/foodmap10.php';
   apiKey = ''; // <-- Enter your own key here!
 
   /**
@@ -42,12 +46,25 @@ export class ApicallerService {
    * @returns Observable with the search results
    */
   retrieveData(): Observable<any> {
-    return this.http.get(`${this.url}`).pipe(
+    return this.http.get(`${API_URL}`).pipe(
       map(results => results['Food']),
       tap(results => {
-        this.setLocalData('Food', results);
+        this.setLocalData('food', results);
       })
     );
+    /*const page = Math.floor(Math.random() * Math.floor(6));
+
+    return this.http.get(`${API_URL}/users?per_page=2&page=${page}`).pipe(
+      map(res => res['data']),
+      tap(res => {
+        this.setLocalData('users', res);
+      })
+    );*/
+  }
+
+  getUsers(forceRefresh: boolean = false): Observable<any[]> {
+    // Return the cached data from Storage
+    return from(this.getLocalData('users'));
   }
 
   // Save result of API requests
