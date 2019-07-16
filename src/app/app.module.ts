@@ -14,7 +14,10 @@ import { IonicStorageModule } from '@ionic/storage';
 import { HttpClientModule } from '@angular/common/http';
 
 import { Geolocation } from '@ionic-native/geolocation/ngx';
+import { CallNumber } from '@ionic-native/call-number/ngx';
+import { InAppBrowser } from '@ionic-native/in-app-browser/ngx';
 import { NativeGeocoder, NativeGeocoderResult, NativeGeocoderOptions } from '@ionic-native/native-geocoder/ngx';
+import { ModalPageModule } from './modal/modal.module';
 
 
 
@@ -26,6 +29,7 @@ import { NativeGeocoder, NativeGeocoderResult, NativeGeocoderOptions } from '@io
     AppRoutingModule,
     HttpClientModule,
    // CacheModule,
+    ModalPageModule,
     IonicStorageModule.forRoot(),
     IonicModule.forRoot()
   ],
@@ -33,6 +37,8 @@ import { NativeGeocoder, NativeGeocoderResult, NativeGeocoderOptions } from '@io
     StatusBar,
     Geolocation,
     NativeGeocoder,
+    CallNumber,
+    InAppBrowser,
     SplashScreen,
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy }
   ],

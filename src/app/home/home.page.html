@@ -1,75 +1,39 @@
-<ion-header>
+<ion-header color="primary">
   <ion-toolbar>
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
-    <ion-title>
-      Food 4 NY
-    </ion-title>
+
+    <ion-searchbar debounce="500" (ionChange)="filterList($event)" (ionClear)="filterList($event)"
+      placeholder="Filter by Organization Name">
+    </ion-searchbar>
+
+    <ion-button slot="end" color="primary" fill="outline" (click)="openModal()">
+
+      <ion-icon name="arrow-dropdown-circle"></ion-icon>
+    </ion-button>
+
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
-  <ion-card class="welcome-card">
-    <ion-img src="/assets/shapes.svg"></ion-img>
-    <ion-card-header>
-      <ion-card-subtitle>Demo 1</ion-card-subtitle>
-      <ion-card-title>Food 4 NY map and api pull test</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <!--<div id="map_canvas"></div>-->
-    </ion-card-content>
-  </ion-card>
-
   
-
-  <ion-list>
-test
-{{data}}
-    <ion-item button *ngFor="let item of data">
-      <ion-avatar slot="start">
-        <img [src]="item.Poster" *ngIf="item.Poster != 'N/A'">
-      </ion-avatar>
+    <ion-item button (click)="presentActionSheet(selectedItem)">
 
       <ion-label text-wrap>
-        <h3>{{ item.Cat }}</h3>
-        {{ item.Notes }}
-        <a href='item.Web'>{{ item.Org }}</a>
+        <strong>{{ selectedItem.Organization }}</strong><br>
+        {{selectedItem.Address}}<br>
+        <strong>Hours: </strong> {{selectedItem.Hours}}<br>
+        {{ selectedItem.Notes }}
+        <br>
+        {{selectedItem.Category}}
       </ion-label>
 
     </ion-item>
 
-  </ion-list>
-<!--
-  <h1>Get Location</h1>
 
 
 
-  <ion-button (click)="getGeolocation()">
-    Get Location
-  </ion-button>
-  <ion-button (click)="watchLocation()">
-    Watch Location Updates
-  </ion-button>
-  <ion-button (click)="stopLocationWatch()">
-    Stop Location Watch
-  </ion-button>
+  <div id="map_canvas"></div>
 
-  <div *ngIf="geoLatitude">
-    <p>Latitude : {{geoLatitude}}</p>
-    <p>Longitude : {{geoLongitude}}</p>
-    <p>Accuracy : {{geoAccuracy}}</p>
-    <p class="address-text">
-
-      <span class="watch-text" *ngIf="isWatching; else notWatching">
-        Watching Location
-      </span>
-      <ng-template #notWatching>
-        Location Watch Stopped
-      </ng-template>
-
-      <br>Address : {{geoAddress }}
-    </p>
-  </div>
-  -->
 </ion-content>

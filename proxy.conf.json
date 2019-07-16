@@ -1,0 +1,11 @@
+{
+    "/api": {
+        "target": "https://sicmfood.com/foodmap10.php",
+        "secure": false,
+        "pathRewrite": {
+            "^/api": ""
+        },
+        "changeOrigin": true,
+        "logLevel": "debug"
+    }
+}

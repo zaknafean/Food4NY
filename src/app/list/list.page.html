@@ -1,27 +1,41 @@
-<ion-header>
+<ion-header color="primary">
   <ion-toolbar>
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
-    <ion-title>
-      List
-    </ion-title>
+
+    <ion-searchbar debounce="500" (ionChange)="filterList($event)" (ionClear)="filterList($event)"
+      placeholder="Filter by Organization Name">
+    </ion-searchbar>
+
+    <ion-button slot="end" color="primary" fill="outline" (click)="openModal()">
+
+      <ion-icon name="arrow-dropdown-circle"></ion-icon>
+    </ion-button>
+
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
   <ion-list>
-    <ion-item *ngFor="let item of items">
-      <ion-icon [name]="item.icon" slot="start"></ion-icon>
-      {{item.title}}
-      <div class="item-note" slot="end">
-        {{item.note}}
-      </div>
+    <ion-item button (click)="presentActionSheet(item)" *ngFor="let item of filterData">
+
+      <ion-label text-wrap>
+        <strong>{{ item.Organization }}</strong><br>
+        {{item.Address}}<br>
+        <strong>Hours: </strong> {{item.Hours}}<br>
+        {{ item.Notes }}
+        <br>
+        {{item.Category}}
+      </ion-label>
     </ion-item>
+
   </ion-list>
+
   <!--
-    <div *ngIf="selectedItem" padding>
-      You navigated here from <b>{{selectedItem.title }}</b>
-    </div>
-  -->
+  <ion-infinite-scroll threshold="100px" (ionInfinite)="doInfinite($event)">
+    <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="Loading more data...">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+-->
 </ion-content>

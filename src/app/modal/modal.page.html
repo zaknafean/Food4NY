@@ -1,0 +1,22 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Show Food Sources</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content padding>
+  <ion-grid>
+    <ion-row>
+      <ion-col text-center>
+        <ion-button (click)="closeModal()">Return to Map</ion-button>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+  <ion-list>
+    <ion-item *ngFor="let item of categoryData">
+      <ion-label>{{item.type}}</ion-label>
+      <ion-checkbox slot="end" [(ngModel)]="item.check"></ion-checkbox>
+    </ion-item>
+  </ion-list>
+
+</ion-content>
