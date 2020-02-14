@@ -74,7 +74,7 @@ export class HomePage implements OnInit {
   }
 
   ngOnInit() {
-    let disconnectSubscription = this.network.onDisconnect().subscribe(() => {
+    const disconnectSubscription = this.network.onDisconnect().subscribe(() => {
       console.log('network was disconnected :-(');
     });
 

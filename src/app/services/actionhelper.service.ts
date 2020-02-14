@@ -21,8 +21,8 @@ export class ActionhelperService {
     disallowoverscroll: 'no', // iOS only
     toolbar: 'yes', // iOS only
     enableViewportScale: 'no', // iOS only
-    allowInlineMediaPlayback: 'no',// iOS only
-    presentationstyle: 'pagesheet',// iOS only
+    allowInlineMediaPlayback: 'no', // iOS only
+    presentationstyle: 'pagesheet', // iOS only
     fullscreen: 'yes', // Windows only
   };
 
