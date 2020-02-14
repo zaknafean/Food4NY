@@ -18,17 +18,17 @@ export class ModalPage implements OnInit {
   }
 
   async closeModal() {
-    let retVal = '';
+    let counter = 0;
 
-    this.filterhelper.setCategoryData(this.categoryData);
+    // this.filterhelper.setCategoryData(this.categoryData);
 
     this.categoryData.forEach(element => {
       if (element.check === true) {
-        retVal = retVal + ',' + element.type;
+        counter++;
       }
     });
 
-    const onClosedData: string = retVal;
+    const onClosedData: string = counter.toString();
     await this.modalController.dismiss(onClosedData);
   }
 }

@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-
 import { Platform } from '@ionic/angular';
 import { SplashScreen } from '@ionic-native/splash-screen/ngx';
 import { StatusBar } from '@ionic-native/status-bar/ngx';
@@ -10,6 +9,7 @@ import { Environment } from '@ionic-native/google-maps/ngx';
   selector: 'app-root',
   templateUrl: 'app.component.html'
 })
+
 export class AppComponent {
   public appPages = [
     {
@@ -21,6 +21,21 @@ export class AppComponent {
       title: 'Directory',
       url: '/list',
       icon: 'list'
+    },
+    {
+      title: 'Settings',
+      url: '/stub',
+      icon: 'settings'
+    },
+    {
+      title: 'Help',
+      url: '/stub',
+      icon: 'help-circle'
+    },
+    {
+      title: 'About',
+      url: '/stub',
+      icon: 'information-circle'
     }
   ];
 
@@ -39,11 +54,11 @@ export class AppComponent {
       Environment.setEnv({
         // Api key for your server
         // (Make sure the api key should have Website restrictions for your website domain only)
-        API_KEY_FOR_BROWSER_RELEASE: 'INSERT KEY HERE',
+        API_KEY_FOR_BROWSER_RELEASE: 'AIzaSyAajY7ixSZ0sxYMg38bbn8xb6JRZROYasQ',
 
         // Api key for local development
         // (Make sure the api key should have Website restrictions for 'http://localhost' only)
-        API_KEY_FOR_BROWSER_DEBUG: 'INSERT KEY HERE'
+        API_KEY_FOR_BROWSER_DEBUG: 'AIzaSyAajY7ixSZ0sxYMg38bbn8xb6JRZROYasQ'
       });
 
 
@@ -51,4 +66,5 @@ export class AppComponent {
       this.splashScreen.hide();
     });
   }
+
 }

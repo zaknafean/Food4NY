@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { CallNumber } from '@ionic-native/call-number/ngx';
-import { InAppBrowser , InAppBrowserOptions } from '@ionic-native/in-app-browser/ngx';
+import { InAppBrowser, InAppBrowserOptions } from '@ionic-native/in-app-browser/ngx';
 
 @Injectable({
   providedIn: 'root'
@@ -26,7 +26,7 @@ export class ActionhelperService {
     fullscreen: 'yes', // Windows only
   };
 
-  constructor( private callNumber: CallNumber, private iab: InAppBrowser ) { }
+  constructor(private callNumber: CallNumber, private iab: InAppBrowser) { }
 
 
   getActionMapping(selectedItem): Array<any> {
@@ -39,7 +39,8 @@ export class ActionhelperService {
       icon: 'map',
       handler: () => {
         console.log('Action Item: Directions');
-        this.openWithInAppBrowser('http://maps.google.com/maps?q=' + selectedItem.Address);
+        const addresss = selectedItem.line_1 + ' ' + selectedItem.city + ' ' +  selectedItem.state  + ' ' + selectedItem.zip;
+        this.openWithSystemBrowser('https://maps.google.com/maps?q=' + addresss);
       }
     });
 
@@ -54,13 +55,13 @@ export class ActionhelperService {
     });
 
     // If there is a phone number, add a call option
-    if (selectedItem.Phone != null && selectedItem.Phone !== '') {
+    if (selectedItem.phone != null && selectedItem.phone !== '') {
       actionSheetOptions.push({
-        text: 'Call ' + selectedItem.Category,
+        text: 'Call ' + selectedItem.name,
         icon: 'call',
         handler: () => {
           console.log('Action Item: Call');
-          this.callNumber.callNumber(selectedItem.Phone, true)
+          this.callNumber.callNumber(selectedItem.phone, true)
             .then(res => console.log('Launched dialer!', res))
             .catch(err => console.log('Error launching dialer', err));
         }
@@ -68,13 +69,13 @@ export class ActionhelperService {
     }
 
     // If there is a website, add a link to it
-    if (selectedItem.Website != null && selectedItem.Phone !== '') {
+    if (selectedItem.website != null && selectedItem.website !== '' && selectedItem.website !== 'N/A') {
       actionSheetOptions.push({
         text: 'Visit Website',
         icon: 'paper',
         handler: () => {
           console.log('Action Item: Visit');
-          this.openWithInAppBrowser(selectedItem.Website);
+          this.openWithSystemBrowser(selectedItem.website);
         }
       });
     }
@@ -86,4 +87,10 @@ export class ActionhelperService {
     const target = '_blank';
     this.iab.create(url, target, this.options);
   }
+
+  public openWithSystemBrowser(url: string) {
+    const target = '_system';
+    this.iab.create(url, target, this.options);
+  }
+
 }

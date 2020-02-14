@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
-import { ApicallerService } from './../services/apicaller.service';
 import { ActionSheetController, ModalController } from '@ionic/angular';
-import { CallNumber } from '@ionic-native/call-number/ngx';
-import { InAppBrowser } from '@ionic-native/in-app-browser/ngx';
+import { ApicallerService } from './../services/apicaller.service';
 import { ActionhelperService } from '../services/actionhelper.service';
-import { ModalPage } from '../modal/modal.page';
+import { Network } from '@ionic-native/network/ngx';
+import { FilterhelperService } from '../services/filterhelper.service';
+import { LoadingController } from '@ionic/angular';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-list',
@@ -13,87 +14,184 @@ import { ModalPage } from '../modal/modal.page';
 })
 export class ListPage implements OnInit {
 
-  private selectedItem: any;
-  private filterData: any = [];
-  private listData: any = [];
-  private categoryTerm = '';
-  private searchTerm = '';
+  public filterData: any = []; // This array changes constantly
+  private masterDataList: any = []; // This array never changes
+  public dataList: any = []; // This array is the one thats displayed
 
-  public items: Array<{ title: string; note: string; icon: string }> = [];
+  private searchFilter = '';
+  private categoryFilter = '';
+  private distanceFilter = 20;
+
+  private infiniteScrollCounter = 25;
+
+  private categoryFilterCount: number;
+  private categoryData = [];
+  private distanceData = [];
+
+  public noSavedData = false;
+  loading: any;
+
+  customAlertOptionsCat: any = {
+    header: 'Categories',
+    subHeader: 'Select categories to view',
+    translucent: true
+  };
+
+  customAlertOptionsDistance: any = {
+    header: 'Distance',
+    subHeader: 'Select how far away from you to search',
+    translucent: true
+  };
 
   constructor(private apiService: ApicallerService, public actionSheetController: ActionSheetController,
-              private actionhelper: ActionhelperService, public modalController: ModalController) {
+    // tslint:disable-next-line:align
+    private actionhelper: ActionhelperService, public modalController: ModalController,
+    // tslint:disable-next-line:align
+    private filterhelper: FilterhelperService, private network: Network, public loadingController: LoadingController) {
 
-
-    this.apiService.getLocalData('specialkey-food').then((val) => {
-      console.log('Listview: Initializing data');
-      this.listData['specialkey-food'] = '';
-      this.listData['specialkey-food'] = val;
-      this.filterData = '';
-      this.filterData = val;
-    }).catch((error) => {
-      console.log('get error for specialkey-food ', error);
-    });
   }
 
   ngOnInit() {
+    let disconnectSubscription = this.network.onDisconnect().subscribe(() => {
+      console.log('network was disconnected :-(');
+    });
+
+    this.presentInformation();
   }
 
-  resyncArrays(): void {
-    console.log('Resynching Local Arrays');
-    this.filterData = this.listData['specialkey-food'];
+  async presentInformation() {
+    await this.presentLoading();
+
+    this.filterhelper.getMyLatLng().then((resp) => {
+
+      this.categoryData = this.filterhelper.getCategoryData();
+      this.categoryFilterCount = this.filterhelper.getCategoryCounter();
+      this.distanceData = this.filterhelper.getDistanceData();
+
+      this.apiService.getLocalData('specialkey-food').then(async (val) => {
+
+        if (!val) {
+          console.log('Error retreiving local data!');
+          await this.loading.dismiss();
+          this.noSavedData = true;
+        } else {
+          console.log('Listview: Initializing data' + val.length);
+          this.noSavedData = false;
+          this.masterDataList = val;
+
+          for (let i = 0; i < this.masterDataList.length; i++) {
+            const curItem = this.masterDataList[i];
+            this.calcDistance(curItem);
+
+
+            if (i < 25) {
+              this.dataList.push(this.masterDataList[i]);
+            }
+            this.filterData.push(this.masterDataList[i]);
+          }
+
+          this.finalFilterPass();
+        }
+      }).catch(async (error) => {
+        console.log('get error for specialkey-food ', error);
+        await this.loading.dismiss();
+        this.noSavedData = true;
+      });
+    });
   }
 
-  filterList(evt?) {
-    this.resyncArrays();
+  async presentLoading() {
+    // Prepare a loading controller
+    this.loading = await this.loadingController.create({
+      message: 'Loading...'
+    });
+    // Present the loading controller
+    await this.loading.present();
+  }
 
-    if (evt) {
-      this.searchTerm = evt.srcElement.value;
-    }
+  calcDistance(item) {
+    const returnValue = this.filterhelper.getDistanceFromLatLonInMiles(item.lat, item.lng);
+    item.distance = returnValue.toFixed(2);
 
-    const categories = this.categoryTerm.toLowerCase();
+    return returnValue.toFixed(2);
+  }
 
-    if (!this.searchTerm && !categories) {
-      console.log('Nothing to filter. Repopulating Map: ' + this.filterData.length);
-      return;
-    }
+  finalFilterPass() {
+    console.log('Distance Filter=' + this.distanceFilter);
+    console.log('Category Filter=' + this.categoryFilter);
+    console.log(' Search  Filter=' + this.searchFilter);
 
-    this.filterData = this.filterData.filter(curItem => {
+    this.filterData = this.masterDataList.filter(async curItem => {
       // Organization is required. This is a sanity check if it doesn't show up
-      if (curItem.Organization) {
+      if (curItem.name) {
 
-        if (this.searchTerm === '' || curItem.Organization.toLowerCase().indexOf(this.searchTerm.toLowerCase()) > -1) {
+        if (curItem.distance && curItem.distance < this.distanceFilter) {
 
-          if (categories === '' || categories.indexOf(curItem.Category.toLowerCase()) > -1) {
+          const jsonString = JSON.stringify(curItem).toLowerCase();
 
-            return true;
+          if (this.searchFilter === '' || jsonString.indexOf(this.searchFilter.toLowerCase()) > -1) {
+
+            if (this.categoryFilter === '' || this.categoryFilter.indexOf(curItem.subcategory.name.toLowerCase()) > -1) {
+              await this.loading.dismiss();
+              return true;
+            }
           }
         }
-
+        await this.loading.dismiss();
         return false;
       }
     });
-    console.log('Local Arrays filtered. Count: ' + this.filterData.length);
+
+    // Save max length of loaded data
+    const j = Math.max(this.dataList.length, this.infiniteScrollCounter);
+    this.dataList = [];
+
+    let i = 0;
+
+    for (i = 0; i < j; i++) {
+      if (i >= this.filterData.length) {
+        break;
+      }
+
+      this.dataList.push(this.filterData[i]);
+    }
+
+    console.log('sync complete=Total:' + this.filterData.length + ' ->' + this.dataList.length);
+    console.log('Local Arrays filtered by search. Count: ' + this.filterData.length);
   }
 
-  async openModal() {
+  filterBySearchBar(evt?) {
 
-    const modal = await this.modalController.create({
-      component: ModalPage
-    });
+    if (evt) {
+      this.searchFilter = evt.srcElement.value;
+    }
 
-    modal.onDidDismiss().then((dataReturned) => {
-      if (dataReturned !== null) {
-        this.categoryTerm = dataReturned.data;
-        this.filterList();
-      }
-    });
+    this.finalFilterPass();
+  }
 
-    return await modal.present();
+  filterByCategory(evt?) {
+
+    if (evt) {
+      this.categoryFilterCount = evt.srcElement.value.length;
+      this.categoryFilter = (evt.srcElement.value).toString().toLowerCase();
+    }
+
+    this.finalFilterPass();
+  }
+
+  filterByDistance(evt?) {
+
+    if (evt) {
+
+      this.distanceFilter = Number(evt.srcElement.value);
+      console.log(this.distanceFilter + ' has changed distance filter value');
+    }
+
+    this.finalFilterPass();
   }
 
   async presentActionSheet(selectedItem) {
-    console.log('ActionSheet: ' + selectedItem.Organization);
+    console.log('ActionSheet: ' + selectedItem.name);
 
     if (selectedItem == null) {
       console.log('Error: No item selected to show options for');
@@ -101,27 +199,28 @@ export class ListPage implements OnInit {
     }
 
     const actionSheet = await this.actionSheetController.create({
-      header: selectedItem.Organization,
+      header: selectedItem.name,
+      subHeader: selectedItem.hours_of_operation,
       buttons: this.actionhelper.getActionMapping(selectedItem)
     });
 
     await actionSheet.present();
   }
 
-
   doInfinite(event) {
     setTimeout(() => {
-      console.log('Done');
+
+      for (let i = 0; i < 25; i++) {
+        if (this.dataList.length >= this.filterData.length) {
+          break;
+        }
+
+        this.dataList.push(this.filterData[this.dataList.length]);
+      }
       event.target.complete();
 
-      // TODO Improve logic. This assumes EXACTLY 10 new entries will exist
-      if (this.filterData.length === this.listData.length) {
+      if (this.dataList.length === this.masterDataList.length) {
         event.target.disabled = true;
-      } else {
-        const curLength = this.filterData.length;
-        for (let i = curLength; i < curLength + 10; i++) {
-          this.filterData.push(this.listData['specialkey-food'][i]);
-        }
       }
     }, 500);
   }

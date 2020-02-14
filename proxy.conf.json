@@ -1,6 +1,6 @@
 {
     "/api": {
-        "target": "https://sicmfood.com/foodmap10.php",
+        "target": "https://map.thefoodpantries.org/api/entities",
         "secure": false,
         "pathRewrite": {
             "^/api": ""

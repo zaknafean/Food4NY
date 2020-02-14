@@ -11,13 +11,17 @@ import { AppRoutingModule } from './app-routing.module';
 
 import { IonicStorageModule } from '@ionic/storage';
 // import { CacheModule } from 'ionic-cache-observable';
-import { HttpClientModule } from '@angular/common/http';
+// import { HttpClientModule } from '@angular/common/http';
+import { HttpBackend, HttpXhrBackend } from '@angular/common/http';
+import { NativeHttpModule, NativeHttpBackend, NativeHttpFallback } from 'ionic-native-http-connection-backend';
 
 import { Geolocation } from '@ionic-native/geolocation/ngx';
 import { CallNumber } from '@ionic-native/call-number/ngx';
 import { InAppBrowser } from '@ionic-native/in-app-browser/ngx';
+import { Network } from '@ionic-native/network/ngx';
 import { NativeGeocoder, NativeGeocoderResult, NativeGeocoderOptions } from '@ionic-native/native-geocoder/ngx';
 import { ModalPageModule } from './modal/modal.module';
+import { Platform } from '@ionic/angular';
 
 
 
@@ -27,8 +31,9 @@ import { ModalPageModule } from './modal/modal.module';
   imports: [
     BrowserModule,
     AppRoutingModule,
-    HttpClientModule,
-   // CacheModule,
+    // HttpClientModule,
+    NativeHttpModule,
+    // CacheModule,
     ModalPageModule,
     IonicStorageModule.forRoot(),
     IonicModule.forRoot()
@@ -39,9 +44,11 @@ import { ModalPageModule } from './modal/modal.module';
     NativeGeocoder,
     CallNumber,
     InAppBrowser,
+    Network,
     SplashScreen,
+    { provide: HttpBackend, useClass: NativeHttpFallback, deps: [Platform, NativeHttpBackend, HttpXhrBackend] },
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy }
   ],
   bootstrap: [AppComponent]
 })
-export class AppModule {}
+export class AppModule { }

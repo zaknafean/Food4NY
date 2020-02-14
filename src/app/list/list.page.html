@@ -1,41 +1,74 @@
-<ion-header color="primary">
-  <ion-toolbar>
+<ion-header>
+  <ion-toolbar color="captain">
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
 
-    <ion-searchbar debounce="500" (ionChange)="filterList($event)" (ionClear)="filterList($event)"
-      placeholder="Filter by Organization Name">
+    <ion-searchbar debounce="500" (ionChange)="filterBySearchBar($event)" (ionClear)="filterBySearchBar($event)"
+      placeholder="Search For Vendor">
     </ion-searchbar>
-
-    <ion-button slot="end" color="primary" fill="outline" (click)="openModal()">
-
-      <ion-icon name="arrow-dropdown-circle"></ion-icon>
-    </ion-button>
-
   </ion-toolbar>
+
+  <ion-grid>
+    <ion-row>
+      <ion-col size-xs="6">
+        <ion-select multiple="true" [interfaceOptions]="customAlertOptionsCat" placeholder="None"
+          selectedText="{{categoryFilterCount}} categories" (ionChange)="filterByCategory($event)">
+          <ion-select-option *ngFor="let category of categoryData" selected=category.check>{{category.type}}
+          </ion-select-option>
+        </ion-select>
+      </ion-col>
+
+      <ion-col size-xs="6">
+        <ion-select multiple="false" [interfaceOptions]="customAlertOptionsDistance" placeholder="None"
+          selectedText="within {{distanceFilter}} miles" (ionChange)="filterByDistance($event)" value="20">
+          <ion-select-option *ngFor="let distance of distanceData">{{distance.value}}
+          </ion-select-option>
+        </ion-select>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      Showing {{dataList.length}} of {{filterData.length}}
+    </ion-row>
+  </ion-grid>
 </ion-header>
 
+
 <ion-content>
-  <ion-list>
-    <ion-item button (click)="presentActionSheet(item)" *ngFor="let item of filterData">
 
-      <ion-label text-wrap>
-        <strong>{{ item.Organization }}</strong><br>
-        {{item.Address}}<br>
-        <strong>Hours: </strong> {{item.Hours}}<br>
-        {{ item.Notes }}
-        <br>
-        {{item.Category}}
-      </ion-label>
+  <ion-list *ngIf="this.noSavedData === true">
+    <ion-item>
+      <ion-card class="ion-text-wrap">
+        <ion-card-header color="captain">Can not retrieve directory data</ion-card-header>
+        <ion-card-content>
+          <h2>You are offline, and no saved data can be found. Please reconnect to the internet and refresh to see
+            the
+            directory</h2>
+        </ion-card-content>
+      </ion-card>
     </ion-item>
-
   </ion-list>
 
-  <!--
+  <ion-list *ngIf="this.noSavedData === false">
+    <ion-item button (click)="presentActionSheet(item)" *ngFor="let item of dataList">
+
+      <ion-card class="ion-text-wrap">
+        <ion-card-header color="captain">{{ item.name }}</ion-card-header>
+        <ion-card-content>
+          <strong>Address: </strong>{{item.line_1}} {{item.city}} {{item.state}} {{item.zip}}<br>
+          <strong>Hours: </strong>{{item.hours_of_operation}}<br>
+          <strong>Notes: </strong>{{item.info}}<br>
+          <strong>Category: </strong>{{item.subcategory.name}}<br>
+          <strong>Distance: </strong>{{item.distance}} miles<br>
+        </ion-card-content>
+      </ion-card>
+
+    </ion-item>
+  </ion-list>
+
   <ion-infinite-scroll threshold="100px" (ionInfinite)="doInfinite($event)">
     <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="Loading more data...">
     </ion-infinite-scroll-content>
   </ion-infinite-scroll>
--->
+
 </ion-content>

@@ -13,12 +13,15 @@ import {
   GoogleMapsAnimation,
   GoogleMapOptions,
   GoogleMapsMapTypeId
-} from '@ionic-native/google-maps';
+} from '@ionic-native/google-maps/ngx';
 import { ApicallerService } from './../services/apicaller.service';
 import { ModalController } from '@ionic/angular';
-import { ModalPage } from '../modal/modal.page';
 import { ActionSheetController } from '@ionic/angular';
 import { ActionhelperService } from '../services/actionhelper.service';
+import { NgZone } from '@angular/core';
+import { FilterhelperService } from '../services/filterhelper.service';
+import { Network } from '@ionic-native/network/ngx';
+import { LoadingController } from '@ionic/angular';
 
 
 @Component({
@@ -27,380 +30,201 @@ import { ActionhelperService } from '../services/actionhelper.service';
   styleUrls: ['home.page.scss'],
 })
 
+
 export class HomePage implements OnInit {
 
   map: GoogleMap;
 
-  allData = [];
-  curData = [];
+  private masterDataList: any = [];
+  private filterData: any = [];
 
-  searchTerm = '';
-  categoryTerm = '';
-  selectedItem: any;
+  private searchFilter = '';
+  private categoryFilter = '';
+  private distanceFilter = 20;
+
+  zone: NgZone;
+
+  private categoryData = [];
+  private distanceData = [];
+  private categoryFilterCount: number;
+
+  public noSavedData = false;
+  loading: any;
+
+  customAlertOptionsCat: any = {
+    header: 'Categories',
+    subHeader: 'Select categories to view',
+    translucent: true
+  };
+
+  customAlertOptionsDistance: any = {
+    header: 'Distance',
+    subHeader: 'Select how far away from you to search',
+    translucent: true
+  };
 
   constructor(private platform: Platform, private apiService: ApicallerService, private actionhelper: ActionhelperService,
-              public modalController: ModalController, public actionSheetController: ActionSheetController) {
+    // tslint:disable-next-line:align
+    public modalController: ModalController, public actionSheetController: ActionSheetController,
+    // tslint:disable-next-line:align
+    private filterhelper: FilterhelperService, private network: Network, public loadingController: LoadingController) {
 
-    this.selectedItem = {
-      Category: '',
-      Organization: 'Select a marker for more details',
-      Info: '',
-      County: '',
-      Address: '',
-      Street: '',
-      City: '',
-      State: '',
-      Zip: '',
-      Phone: '',
-      Hours: '',
-      Notes: '',
-      Coalition: 'yes', // yes or no
-      Website: '',
-      Cost: 'N/A', // pantries don't have this. Community meals might
-      Latitude: 42.7978143,
-      Longitude: -73.9644236,
-      Updated: '7/10/2019'
-    };
-
+    // https://ionicallyspeaking.com/2017/01/17/ionic-2-ui-not-updating-after-change-to-model/
+    this.zone = new NgZone({ enableLongStackTrace: false });
   }
 
   ngOnInit() {
+    let disconnectSubscription = this.network.onDisconnect().subscribe(() => {
+      console.log('network was disconnected :-(');
+    });
+
+    // Ensure device is ready to do stuff
     this.platform.ready().then(() => {
-
-      // this.getValue('specialkey-food');
-      this.getValueDemoData();
-
+      console.log('Platform ready...');
+      this.presentInformation();
     });
   }
 
-  // Attempts to get a key/value pair
-  getValue(key: string) {
+  async presentInformation() {
+    await this.presentLoading();
 
-    this.apiService.getLocalData(key).then((val) => {
-      console.log('Verifying data ' + key + ' ', val);
-      this.allData[key] = '';
-      this.allData[key] = val;
-      this.resyncArrays();
-    }).catch((error) => {
-      console.log('get error for ' + key + '', error);
-    }).finally(() => {
-      this.loadData();
-    });
+    // First lets get your current location
+    this.filterhelper.getMyLatLng().then((resp) => {
+      console.log('Got Lat/LNG...');
+      this.categoryData = this.filterhelper.getCategoryData();
+      this.categoryFilterCount = this.filterhelper.getCategoryCounter();
+      this.distanceData = this.filterhelper.getDistanceData();
 
-  }
+      this.apiService.retrieveData().then(async (res) => {
 
-  getValueDemoData() {
+        if (!res) {
+          console.log('Error retrieving fresh data!');
 
-    const test: any = [{
-      Category: 'Food Pantry',
-      Organization: 'The Tearcell Studio',
-      Info: 'Do not call. Just show up.',
-      County: 'Schenectady',
-      Address: '2000 Broadway, bev NY, 90210',
-      Street: '2000 Broadway',
-      City: 'bev',
-      State: 'NY',
-      Zip: '90210',
-      Phone: '555-555-5555',
-      Hours: 'Open 7/11',
-      Notes: 'A note place holder',
-      Coalition: 'yes',
-      Website: 'https://tearcell.com/demo',
-      Cost: 'N/A',
-      Latitude: 42.7978143,
-      Longitude: -73.9644236,
-      Updated: '7/10/2019'
-    },
-    {
-      Category: 'Food Pantry',
-      Organization: 'Bellvue Reformed Church Little Free Food Pantry',
-      Info: 'Please come take whatever food you need from the cabinet; no ID/paperwork.',
-      County: 'Schenectady',
-      Address: '2000 Broadway, Schenectady,NY, 12306',
-      Street: '2000 Broadway',
-      City: 'Schenectady',
-      State: 'NY',
-      Zip: '12306',
-      Phone: '',
-      Hours: 'Open 24/7',
-      Notes: 'A note place holder',
-      Coalition: 'yes',
-      Website: 'http://bellevuereformed.org/',
-      Cost: 'N/A',
-      Latitude: 42.8061850,
-      Longitude: -73.9338490,
-      Updated: '7/10/2019'
-    },
-    {
-      Category: 'Food Pantry',
-      Organization: 'Braman Hall',
-      Info: '',
-      County: 'Schenectady',
-      Address: '7967 Route 30, Duanesburg NY, 12056',
-      Street: '7967 Route 30',
-      City: 'Duanesburg',
-      State: 'NY',
-      Zip: '12056',
-      Phone: '518-956-1758',
-      Hours: 'Thursdays 1-3 PM; Wednesdays 5-7 PM; call for other appointments',
-      Notes: 'Limit of once per month',
-      Coalition: 'yes',
-      Website: '',
-      Cost: 'N/A',
-      Latitude: 42.8184851,
-      Longitude: -74.1991839,
-      Updated: '7/10/2019'
-    },
-    {
-      Category: 'Food Pantry',
-      Organization: 'Lighthouse',
-      Info: 'Need proof of address',
-      County: 'Schenectady',
-      Address: '4780 Duanesburg Rd., Princetown NY, 12056',
-      Street: '4780 Duanesburg Rd.',
-      City: 'Princetown',
-      State: 'NY',
-      Zip: '12056',
-      Phone: '518-355-2277',
-      Hours: 'Call for an appointment',
-      Notes: 'A note place holder',
-      Coalition: 'yes',
-      Website: '',
-      Cost: 'N/A',
-      Latitude: 42.7728294,
-      Longitude: -74.0966285,
-      Updated: '7/10/2019'
-    },
-    {
-      Category: 'Food Pantry',
-      Organization: 'Our Lady of Fatima',
-      Info: '',
-      County: 'Schenectady',
-      Address: '1735 Alexander Rd, Delanson NY, 90210',
-      Street: '1735 Alexander Rd',
-      City: 'Delanson',
-      State: 'NY',
-      Zip: '12053',
-      Phone: '518-895-2788',
-      Hours: 'By appointment only',
-      Notes: 'Can visit once a month Duanesburg, Delanson, QuakerStreet, Esperance and Mariaville areas only',
-      Coalition: 'yes',
-      Website: '',
-      Cost: 'N/A',
-      Latitude: 42.7498046,
-      Longitude: -74.1869729,
-      Updated: '7/10/2019'
-    },
-    {
-      Category: 'Food Pantry',
-      Organization: 'Trinity Baptist Church',
-      Info: '',
-      County: 'Schenectady',
-      Address: '2635 Balltown Road, Schenectady NY, 12309',
-      Street: '2635 Balltown Road',
-      City: 'Schenectady',
-      State: 'NY',
-      Zip: '12309',
-      Phone: '518-393-2506',
-      Hours: '1st and 3rd Thursday 7-8 pm',
-      Notes: 'Please use back entrance of the building',
-      Coalition: 'yes',
-      Website: '',
-      Cost: 'N/A',
-      Latitude: 42.8355924,
-      Longitude: -73.8927505,
-      Updated: '7/10/2019'
-    },
-    {
-      Category: 'Community Meals',
-      Organization: 'Christ Centered Unity Missionary Baptist',
-      Info: '',
-      County: 'Schenectady',
-      Address: '113 South Brandwine Ave, Schenectady NY, 12307',
-      Street: '113 South Brandwine Ave',
-      City: 'Schenectady',
-      State: 'NY',
-      Zip: '12307',
-      Phone: 'Call 2-1-1 to find the site closest to you',
-      Hours: '07/05-8/19/2016 Lunch: 11:30 am -12:45 pm',
-      Notes: 'SICM Summer Meal site; children 18 and under; no sign up necessary',
-      Coalition: 'yes',
-      Website: 'http://www.sicm.us/Programs%20Summer%20Lunch.html',
-      Cost: 'N/A',
-      Latitude: 42.7998010,
-      Longitude: -73.9284880,
-      Updated: '7/10/2019'
-    },
-    {
-      Category: 'Misc',
-      Organization: 'CVS PHARMACY 5045*',
-      Info: '',
-      County: 'Schenectady',
-      Address: '2617 Hamburg Street, Schenectady NY, 12303',
-      Street: '2617 Hamburg Street',
-      City: 'Schenectady',
-      State: 'NY',
-      Zip: '12303',
-      Phone: '',
-      Hours: '',
-      Notes: '',
-      Coalition: 'no',
-      Website: '',
-      Cost: 'N/A',
-      Latitude: 42.7770170,
-      Longitude: -73.9333660,
-      Updated: '7/10/2019'
-    },
-    {
-      Category: 'Community Meals',
-      Organization: 'Freihofer\'s Bakery Outlet',
-      Info: '',
-      County: 'Schenectady',
-      Address: '1874 State St, Schenectady NY, 12304',
-      Street: '1874 State St',
-      City: 'Schenectady',
-      State: 'NY',
-      Zip: '12304',
-      Phone: '',
-      Hours: '',
-      Notes: 'Bakery',
-      Coalition: 'no',
-      Website: '',
-      Cost: 'N/A',
-      Latitude: 42.7778348,
-      Longitude: -73.9011379,
-      Updated: '7/10/2019'
-    },
-    {
-      Category: 'SNAP',
-      Organization: 'Ocean State Job Lot 502*',
-      Info: 'Do not call. Just show up.',
-      County: 'Schenectady',
-      Address: '2330 Watt Street, Schenectady NY, 12304',
-      Street: '2330 Watt Street',
-      City: 'Schenectady',
-      State: 'NY',
-      Zip: '12304',
-      Phone: '',
-      Hours: '',
-      Notes: '',
-      Coalition: 'yes',
-      Website: '',
-      Cost: 'N/A',
-      Latitude: 42.7841153,
-      Longitude: -73.9184434,
-      Updated: '7/10/2019'
-    },
-    {
-      Category: 'Veggie Mobile',
-      Organization: 'Concerned for the Hungry',
-      Info: '',
-      County: 'Schenectady',
-      Address: '1252 Albany Street, Schenectady NY, 12304',
-      Street: '1252 Albany Street',
-      City: 'Schenectady',
-      State: 'NY',
-      Zip: '12304',
-      Phone: '',
-      Hours: '',
-      Notes: 'Thanksgiving',
-      Coalition: 'yes',
-      Website: '',
-      Cost: 'N/A',
-      Latitude: 42.7966870,
-      Longitude: -73.9248190,
-      Updated: '7/10/2019'
-    },
-    {
-      Category: 'Community Meals',
-      Organization: 'Scotia-Glenville',
-      Info: '',
-      County: 'Schenectady',
-      Address: '132 Mohawk Ave., Scotia NY, 12302',
-      Street: '132 Mohawk Ave.',
-      City: 'Scotia',
-      State: 'NY',
-      Zip: '12302',
-      Phone: 'Office: 518-399-9426, Tim Horn 518-423-4132, Kelly Gibbons 518-588-82',
-      Hours: 'Tuesday , 5:30p.m.-7p.m. Friday ,9a.m.-11a.m.',
-      Notes: 'For residents of Scotia and Glenville only, once/month ',
-      Coalition: 'yes',
-      Website: '',
-      Cost: 'N/A',
-      Latitude: 42.8263140,
-      Longitude: -73.9630940,
-      Updated: '7/10/2019'
-    }
-    ];
+          this.apiService.getLocalData('specialkey-food').then(async (val) => {
 
-    this.apiService.setLocalData('food', test);
-    this.allData['specialkey-food'] = '';
-    this.allData['specialkey-food'] = test;
-    this.resyncArrays();
-    this.loadData();
-  }
+            if (!val) {
+              console.log('Error retreiving local data!');
+              await this.loading.dismiss();
+              this.noSavedData = true;
+            } else {
+              console.log(val);
+              console.log('Listview: Initializing data ' + val.length);
 
-  loadData(refresh = false) {
-    if (this.allData['specialkey-food'] == null || this.allData['specialkey-food'].length < 1 || refresh === true) {
-      console.log('Local Data Not found. Retrieving New Data');
+              this.masterDataList = val;
 
-      this.apiService.retrieveData().subscribe((res) => {
+              // tslint:disable-next-line:prefer-for-of
+              for (let i = 0; i < this.masterDataList.length; i++) {
+                const curItem = this.masterDataList[i];
+                this.calcDistance(curItem);
+              }
 
-        this.apiService.getLocalData('specialkey-food').then((val) => {
-          this.allData['specialkey-food'] = '';
-          this.allData['specialkey-food'] = val;
-          this.resyncArrays();
+              this.finalFilterPass();
+              this.loadMap();
+            }
+          }).catch(async (error) => {
+            console.log('get error for specialkey-food ', error);
+            await this.loading.dismiss();
+            this.noSavedData = true;
+          });
+
+        } else {
+          console.log(res.data);
+          console.log('Listview: Initializing data ' + res.data.length);
+
+          this.masterDataList = res.data;
+
+          // tslint:disable-next-line:prefer-for-of
+          for (let i = 0; i < this.masterDataList.length; i++) {
+            const curItem = this.masterDataList[i];
+            this.calcDistance(curItem);
+          }
+
+          this.finalFilterPass();
           this.loadMap();
-        }).catch((error) => {
-          console.log('get error for specialkey-food ', error);
-        });
+        }
       });
-    } else {
-      console.log('Local data already loaded- count: ' + this.allData['specialkey-food'].length + '.');
-      this.loadMap();
-    }
+    });
 
   }
 
-  resyncArrays(): void {
-    console.log('Resynching Local Arrays');
-    this.curData = this.allData['specialkey-food'];
+  async presentLoading() {
+    // Prepare a loading controller
+    this.loading = await this.loadingController.create({
+      message: 'Loading...'
+    });
+    // Present the loading controller
+    await this.loading.present();
   }
 
-  filterList(evt?) {
-    this.resyncArrays();
+  calcDistance(item) {
+    const returnValue = this.filterhelper.getDistanceFromLatLonInMiles(item.lat, item.lng);
+    item.distance = returnValue.toFixed(2);
 
-    if (evt) {
-      this.searchTerm = evt.srcElement.value;
-    }
+    return returnValue.toFixed(2);
+  }
 
-    const categories = this.categoryTerm.toLowerCase();
+  finalFilterPass() {
+    console.log('Checking Filter: ' + this.masterDataList.length);
+    console.log('Distance Filter=' + this.distanceFilter);
+    console.log('Category Filter=' + this.categoryFilter);
+    console.log('Search Filter=' + this.searchFilter);
 
-    if (!this.searchTerm && !categories) {
-      console.log('Nothing to filter. Repopulating Map: ' + this.curData.length);
-      this.populateMapMakers();
-      return;
-    }
-
-    this.curData = this.curData.filter(curItem => {
+    this.filterData = this.masterDataList.filter(curItem => {
       // Organization is required. This is a sanity check if it doesn't show up
-      if (curItem.Organization) {
+      if (curItem.name) {
 
-        if (this.searchTerm === '' || curItem.Organization.toLowerCase().indexOf(this.searchTerm.toLowerCase()) > -1) {
+        // console.log('2' + curItem.distance);
+        if (curItem.distance && curItem.distance < this.distanceFilter) {
 
-          if (categories === '' || categories.indexOf(curItem.Category.toLowerCase()) > -1) {
+          const jsonString = JSON.stringify(curItem).toLowerCase();
 
-            return true;
+          if (this.searchFilter === '' || jsonString.indexOf(this.searchFilter.toLowerCase()) > -1) {
+
+            if (this.categoryFilter === '' || this.categoryFilter.indexOf(curItem.subcategory.name.toLowerCase()) > -1) {
+
+              return true;
+            }
           }
         }
 
         return false;
       }
     });
-    console.log('Local Arrays filtered. Count: ' + this.curData.length);
+
+    console.log('Local Arrays filtered by. Count: ' + this.filterData.length);
+
     this.populateMapMakers();
   }
 
+  filterBySearchBar(evt?) {
+
+    if (evt) {
+      this.searchFilter = evt.srcElement.value;
+    }
+
+    this.finalFilterPass();
+  }
+
+  filterByCategory(evt?) {
+
+    if (evt) {
+      this.categoryFilterCount = evt.srcElement.value.length;
+      this.categoryFilter = (evt.srcElement.value).toString().toLowerCase();
+    }
+
+    this.finalFilterPass();
+  }
+
+  filterByDistance(evt?) {
+
+    if (evt) {
+
+      this.distanceFilter = Number(evt.srcElement.value);
+      console.log(this.distanceFilter + ' has changed distance filter value');
+    }
+
+    this.finalFilterPass();
+  }
 
   loadMap() {
 
@@ -415,8 +239,8 @@ export class HomePage implements OnInit {
       },
       camera: {
         target: {
-          lat: this.curData[0].Latitude,
-          lng: this.curData[0].Longitude
+          lat: this.filterhelper.startingLatLng.lat,
+          lng: this.filterhelper.startingLatLng.lng
         },
         zoom: 18,
         tilt: 30,
@@ -426,87 +250,83 @@ export class HomePage implements OnInit {
     this.map = GoogleMaps.create('map_canvas', mapOptions);
     this.map.on(GoogleMapsEvent.MAP_READY).subscribe(
       (data) => {
-        console.log('Map Ready', data);
+        console.log('Map Ready');
         this.populateMapMakers();
       }
     );
 
   }
 
+  async populateMapMakers() {
+    if (this.map == null) {
+      console.log('Map not ready yet!');
+      await this.loading.dismiss();
+      return;
+    }
 
-  populateMapMakers() {
     this.map.clear();
-    console.log('Populating Markers. Total Markers: ' + this.curData.length);
+    console.log('Populating Markers. Total Markers: ' + this.filterData.length);
 
-    for (const curLocation of this.curData) {
+    for (const curLocation of this.filterData) {
 
       const curLatLng: any = {
-        lat: curLocation.Latitude,
-        lng: curLocation.Longitude
+        lat: curLocation.lat,
+        lng: curLocation.lng
       };
 
       let myIcon = 'red';
 
-      if (curLocation.Cat === 'Food Pantries') {
+      if (curLocation.Category === 'Food Pantries') {
         myIcon = 'blue';
-      } else if (curLocation.Cat === 'Community Meals') {
+      } else if (curLocation.Category === 'Community Meals') {
         myIcon = 'orange';
-      } else if (curLocation.Cat === 'SNAP') {
+      } else if (curLocation.Category === 'SNAP') {
         myIcon = 'yellow';
-      } else if (curLocation.Org === 'Medical Assistance') {
+      } else if (curLocation.Category === 'Medical Assistance') {
         myIcon = 'cyan';
-      } else if (curLocation.Cat === 'Veggie Mobile') {
+      } else if (curLocation.Category === 'Veggie Mobile') {
         myIcon = 'green';
-      } else if (curLocation.Cat === 'Misc') {
+      } else if (curLocation.Category === 'Misc') {
         myIcon = 'magenta';
       }
 
       // add a marker
       const marker: Marker = this.map.addMarkerSync({
-        // title: curLocation.Org,
-        // snippet: 'You are here.',
+        title: curLocation.name,
+        snippet: curLocation.line_1 + ' ' + curLocation.city + ' ' + curLocation.state + ' ' + curLocation.zip,
 
         position: curLatLng,
-        animation: GoogleMapsAnimation.BOUNCE,
+        // animation: GoogleMapsAnimation.DROP, // https://github.com/mapsplugin/cordova-plugin-googlemaps/issues/853
         icon: myIcon
       });
+
+      // show the infoWindow, this causes the last loaded marker to become the starting point
+      // marker.showInfoWindow();
 
       // If clicked it, display the alert
       marker.on(GoogleMapsEvent.MARKER_CLICK).subscribe(() => {
 
-        // Move the map camera to the location with animation
-        this.map.animateCamera({
-          target: curLatLng,
-          zoom: 18,
-          duration: 5000
+        // This zone thing makes sure the UI keeps up with changes to the model somehow
+        this.zone.run(() => {
 
+          // Move the map camera to the location with animation
+          this.map.animateCamera({
+            target: curLatLng,
+            zoom: 18,
+            duration: 1000
+          });
+
+          this.presentActionSheet(curLocation);
         });
 
-        this.selectedItem = curLocation;
       });
 
     }
-  }
-
-
-  async openModal() {
-
-    const modal = await this.modalController.create({
-      component: ModalPage
-    });
-
-    modal.onDidDismiss().then((dataReturned) => {
-      if (dataReturned !== null) {
-        this.categoryTerm = dataReturned.data;
-        this.filterList();
-      }
-    });
-
-    return await modal.present();
+    await this.loading.dismiss();
   }
 
   async presentActionSheet(selectedItem) {
-    console.log('ActionSheet: ' + selectedItem.Organization);
+    console.log('ActionSheet: ' + selectedItem.name);
 
     if (selectedItem == null) {
       console.log('Error: No item selected to show options for');
@@ -514,7 +334,8 @@ export class HomePage implements OnInit {
     }
 
     const actionSheet = await this.actionSheetController.create({
-      header: selectedItem.Organization,
+      header: selectedItem.name,
+      subHeader: selectedItem.hours_of_operation,
       buttons: this.actionhelper.getActionMapping(selectedItem)
     });
 
