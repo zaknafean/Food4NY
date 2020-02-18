@@ -107,8 +107,8 @@
     <plugin name="cordova-plugin-splashscreen" spec="5.0.2" />
     <plugin name="cordova-plugin-googlemaps" spec="2.6.2" />
     <preference name="WKWebViewOnly" value="true" />
-    <preference name="GOOGLE_MAPS_ANDROID_API_KEY" value="AIzaSyDelpzz9d8hd0FzPufXsx4QcY1v6sUdgvI" />
-    <preference name="GOOGLE_MAPS_IOS_API_KEY" value="AIzaSyDelpzz9d8hd0FzPufXsx4QcY1v6sUdgvI" />
+    <preference name="GOOGLE_MAPS_ANDROID_API_KEY" value="ADD_YOUR_OWN" />
+    <preference name="GOOGLE_MAPS_IOS_API_KEY" value="ADD_YOUR_OWN" />
     <plugin name="cordova-plugin-geolocation" spec="4.0.1">
         <variable name="GEOLOCATION_USAGE_DESCRIPTION" value="To locate you" />
     </plugin>
