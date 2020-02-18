@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.tearcell.food4ny" version="0.1.2" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="com.tearcell.food4ny" version="0.1.3" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>Food4NY</name>
     <description>An update and response to Food4Schy app</description>
     <author email="aweepingman@gmail.com" href="https://tearcell.com/">A weeping man</author>
@@ -107,8 +107,8 @@
     <plugin name="cordova-plugin-splashscreen" spec="5.0.2" />
     <plugin name="cordova-plugin-googlemaps" spec="2.6.2" />
     <preference name="WKWebViewOnly" value="true" />
-    <preference name="GOOGLE_MAPS_ANDROID_API_KEY" value="REPLACE_WITH_VALID_KEY" />
-    <preference name="GOOGLE_MAPS_IOS_API_KEY" value="REPLACE_WITH_VALID_KEY" />
+    <preference name="GOOGLE_MAPS_ANDROID_API_KEY" value="AIzaSyDelpzz9d8hd0FzPufXsx4QcY1v6sUdgvI" />
+    <preference name="GOOGLE_MAPS_IOS_API_KEY" value="AIzaSyDelpzz9d8hd0FzPufXsx4QcY1v6sUdgvI" />
     <plugin name="cordova-plugin-geolocation" spec="4.0.1">
         <variable name="GEOLOCATION_USAGE_DESCRIPTION" value="To locate you" />
     </plugin>

@@ -24,17 +24,17 @@ export class AppComponent {
     },
     {
       title: 'Settings',
-      url: '/stub',
+      url: '/settings',
       icon: 'settings'
     },
     {
       title: 'Help',
-      url: '/stub',
+      url: '/help',
       icon: 'help-circle'
     },
     {
       title: 'About',
-      url: '/stub',
+      url: '/about',
       icon: 'information-circle'
     }
   ];
@@ -50,7 +50,7 @@ export class AppComponent {
 
   initializeApp() {
     this.platform.ready().then(() => {
-
+/*
       Environment.setEnv({
         // Api key for your server
         // (Make sure the api key should have Website restrictions for your website domain only)
@@ -60,7 +60,7 @@ export class AppComponent {
         // (Make sure the api key should have Website restrictions for 'http://localhost' only)
         API_KEY_FOR_BROWSER_DEBUG: 'AIzaSyAajY7ixSZ0sxYMg38bbn8xb6JRZROYasQ'
       });
-
+*/
 
       this.statusBar.styleDefault();
       this.splashScreen.hide();

@@ -2,111 +2,161 @@ import { Injectable } from '@angular/core';
 import { ILatLng, Spherical } from '@ionic-native/google-maps/ngx';
 import { Geolocation, Geoposition } from '@ionic-native/geolocation/ngx';
 import { NativeGeocoder } from '@ionic-native/native-geocoder/ngx';
+import { Storage } from '@ionic/storage';
+import { ApicallerService } from './apicaller.service';
+
+
+const PREF_DISTANCE_KEY = 'distancePref';
+const PREF_CATEGORY_KEY = 'categoryPref';
 
 @Injectable({
   providedIn: 'root'
 })
+
 export class FilterhelperService {
 
   categoryData = [];
   distanceChoices = [];
   startingLatLng: ILatLng;
-  categoryCounter: number;
 
-  constructor(private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder) {
+  public defaultCategoryValues = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22];
+
+  constructor(private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder, public storage: Storage, ) {
 
     this.categoryData = [
       {
+        id: 1,
         check: true,
-        type: 'Children and Youth Programs'
+        type: 'Children and Youth Programs',
+        value: 'Children and Youth Programs'
       },
       {
+        id: 2,
         check: true,
-        type: 'Community Meal/Soup Kitchen'
+        type: 'Community Meal/Soup Kitchen',
+        value: 'Community Meal/Soup Kitchen'
       },
       {
+        id: 3,
         check: true,
-        type: 'Coalition Member'
+        type: 'Coalition Member',
+        value: 'Coalition Member'
       },
       {
+        id: 4,
         check: true,
-        type: 'Food Pantry'
+        type: 'Food Pantry',
+        value: 'Food Pantry'
       },
       {
+        id: 5,
         check: true,
-        type: 'Holiday Meal'
+        type: 'Holiday Meal',
+        value: 'Holiday Meal'
       },
       {
+        id: 6,
         check: true,
-        type: 'Child Care'
+        type: 'Child Care',
+        value: 'Child Care'
       },
       {
+        id: 7,
         check: true,
-        type: 'Clothing'
+        type: 'Clothing',
+        value: 'Clothing'
       },
       {
+        id: 8,
         check: true,
-        type: 'Disability Services'
+        type: 'Disability Services',
+        value: 'Disability Services'
       },
       {
+        id: 9,
         check: true,
-        type: 'Emergency Housing'
+        type: 'Emergency Housing',
+        value: 'Emergency Housing'
       },
       {
+        id: 10,
         check: true,
-        type: 'Family Support'
+        type: 'Family Support',
+        value: 'Family Support'
       },
       {
+        id: 11,
         check: true,
-        type: 'Furniture'
+        type: 'Furniture',
+        value: 'Furniture'
       },
       {
+        id: 12,
         check: true,
-        type: 'Housing Assistance'
+        type: 'Housing Assistance',
+        value: 'Housing Assistance'
       },
       {
+        id: 13,
         check: true,
-        type: 'Legal Aid'
+        type: 'Legal Aid',
+        value: 'Legal Aid'
       },
       {
+        id: 14,
         check: true,
-        type: 'Self Help & Support'
+        type: 'Self Help & Support',
+        value: 'Self Help & Support'
       },
       {
+        id: 15,
         check: true,
-        type: 'Social Services'
+        type: 'Social Services',
+        value: 'Social Services'
       },
       {
+        id: 16,
         check: true,
-        type: 'Medical Assistance'
+        type: 'Medical Assistance',
+        value: 'Medical Assistance'
       },
       {
+        id: 17,
         check: true,
-        type: 'Senior Center/Meal Service'
+        type: 'Senior Center/Meal Service',
+        value: 'Senior Center/Meal Service'
       },
       {
+        id: 18,
         check: true,
-        type: 'Senior Services'
+        type: 'Senior Services',
+        value: 'Senior Services'
       },
       {
+        id: 19,
         check: true,
-        type: 'Veggie Mobile Sprout®'
+        type: 'Veggie Mobile Sprout®',
+        value: 'Veggie Mobile Sprout®'
       },
       {
+        id: 20,
         check: true,
-        type: 'Veggie Mobile®'
+        type: 'Veggie Mobile®',
+        value: 'Veggie Mobile®'
       },
       {
+        id: 21,
         check: true,
-        type: 'SNAP (food stamp) Registration Assistance'
+        type: 'SNAP (food stamp) Registration Assistance',
+        value: 'SNAP (food stamp) Registration Assistance'
       },
       {
+        id: 22,
         check: true,
-        type: 'WIC Office/Sign Up Locations'
+        type: 'WIC Office/Sign Up Locations',
+        value: 'WIC Office/Sign Up Locations'
       }
     ];
-
-    this.categoryCounter = this.categoryData.length;
 
     this.distanceChoices = [
       {
@@ -145,6 +195,7 @@ export class FilterhelperService {
         value: 100
       }
     ];
+
   }
 
   getMyLatLng(): Promise<Geoposition> {
@@ -171,8 +222,6 @@ export class FilterhelperService {
   }
 
   getDistanceFromLatLonInMiles(markerLat, markerLng) {
-    // console.log('1=' + this.startingLatLng.lat + ',' + this.startingLatLng.lng);
-    // console.log('2=' + markerLat + ',' + markerLng);
 
     const R = 6371; // Radius of the earth in km
     const dLat = this.deg2rad(this.startingLatLng.lat - markerLat);  // deg2rad below
@@ -194,15 +243,27 @@ export class FilterhelperService {
     return deg * (Math.PI / 180);
   }
 
-  getCategoryCounter(): number {
-    return this.categoryCounter;
-  }
-
   getCategoryData(): Array<any> {
     return this.categoryData;
   }
 
   getDistanceData(): Array<any> {
     return this.distanceChoices;
+  }
+
+  setChosenDistance(newDistance: number) {
+    return this.storage.set(PREF_DISTANCE_KEY, newDistance);
+  }
+
+  getChosenDistance() {
+    return this.storage.get(PREF_DISTANCE_KEY);
+  }
+
+  setChosenCategories(newDistance: Array<number>) {
+    return this.storage.set(PREF_CATEGORY_KEY, newDistance);
+  }
+
+  getChosenCategories() {
+    return this.storage.get(PREF_CATEGORY_KEY);
   }
 }

@@ -12,17 +12,20 @@
   <ion-grid>
     <ion-row>
       <ion-col size-xs="6">
-        <ion-select multiple="true" [interfaceOptions]="customAlertOptionsCat" placeholder="None"
-          selectedText="{{categoryFilterCount}} categories" (ionChange)="filterByCategory($event)">
-          <ion-select-option *ngFor="let category of categoryData" selected=category.check>{{category.type}}
-          </ion-select-option>
-        </ion-select>
+        <ion-select [value]="currentCategoryValues" multiple="true" selectedText="{{categoryFilterCount}} categories"
+        (ionChange)="filterByCategory($event)" [compareWith]="compareWith">
+        <ion-select-option *ngFor="let category of categoryData" [value]="category.id">
+          {{category.type}}
+        </ion-select-option>
+      </ion-select>
       </ion-col>
 
       <ion-col size-xs="6">
-        <ion-select multiple="false" [interfaceOptions]="customAlertOptionsDistance" placeholder="None"
-          selectedText="within {{distanceFilter}} miles" (ionChange)="filterByDistance($event)" value="20">
-          <ion-select-option *ngFor="let distance of distanceData">{{distance.value}}
+        <ion-select [value]="distanceFilter" multiple="false" [interfaceOptions]="customAlertOptionsDistance"
+          selectedText="within {{distanceFilter}} miles" (ionChange)="filterByDistance($event)"
+          [selectedText]="distanceFilter">
+          <ion-select-option *ngFor="let distance of distanceData" [value]="distance.value">
+            {{distance.value}}
           </ion-select-option>
         </ion-select>
       </ion-col>

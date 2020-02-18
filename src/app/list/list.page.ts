@@ -5,7 +5,7 @@ import { ActionhelperService } from '../services/actionhelper.service';
 import { Network } from '@ionic-native/network/ngx';
 import { FilterhelperService } from '../services/filterhelper.service';
 import { LoadingController } from '@ionic/angular';
-import { finalize } from 'rxjs/operators';
+
 
 @Component({
   selector: 'app-list',
@@ -24,9 +24,12 @@ export class ListPage implements OnInit {
 
   private infiniteScrollCounter = 25;
 
-  private categoryFilterCount: number;
   private categoryData = [];
   private distanceData = [];
+  private currentCategoryValues = [];
+  private categoryFilterCount: number;
+
+  private categoryFilterString = '';
 
   public noSavedData = false;
   loading: any;
@@ -62,28 +65,77 @@ export class ListPage implements OnInit {
   async presentInformation() {
     await this.presentLoading();
 
+    // First lets get your current location
     this.filterhelper.getMyLatLng().then((resp) => {
-
+      console.log('Got Lat/LNG...');
       this.categoryData = this.filterhelper.getCategoryData();
-      this.categoryFilterCount = this.filterhelper.getCategoryCounter();
       this.distanceData = this.filterhelper.getDistanceData();
 
-      this.apiService.getLocalData('specialkey-food').then(async (val) => {
-
-        if (!val) {
-          console.log('Error retreiving local data!');
-          await this.loading.dismiss();
-          this.noSavedData = true;
+      this.filterhelper.getChosenCategories().then((categoriesResult) => {
+        if (!categoriesResult) {
+          this.currentCategoryValues = this.filterhelper.defaultCategoryValues;
+          this.categoryFilterCount = this.currentCategoryValues.length;
         } else {
-          console.log('Listview: Initializing data' + val.length);
-          this.noSavedData = false;
-          this.masterDataList = val;
+          this.currentCategoryValues = categoriesResult;
+          this.categoryFilterCount = this.currentCategoryValues.length;
+        }
+      });
+
+      this.filterhelper.getChosenDistance().then((distanceResult) => {
+        if (!distanceResult) {
+          this.distanceFilter = 20;
+        } else {
+          this.distanceFilter = distanceResult;
+        }
+      });
+
+      this.apiService.retrieveData().then(async (res) => {
+
+        if (!res) {
+          console.log('Error retrieving fresh data!');
+
+          this.apiService.getLocalData('specialkey-food').then(async (val) => {
+
+            if (!val) {
+              console.log('Error retreiving local data!');
+              await this.loading.dismiss();
+              this.noSavedData = true;
+            } else {
+              console.log(val);
+              console.log('Listview: Initializing data ' + val.length);
+
+              this.masterDataList = val;
+
+              for (let i = 0; i < this.masterDataList.length; i++) {
+                const curItem = this.masterDataList[i];
+                this.calcDistance(curItem);
+
+                // Infinite load means we are moving data around more
+                if (i < 25) {
+                  this.dataList.push(this.masterDataList[i]);
+                }
+                this.filterData.push(this.masterDataList[i]);
+              }
+
+              this.finalFilterPass();
+            }
+          }).catch(async (error) => {
+            console.log('get error for specialkey-food ', error);
+            await this.loading.dismiss();
+            this.noSavedData = true;
+          });
+
+        } else {
+          console.log(res.data);
+          console.log('Listview: Initializing data ' + res.data.length);
+
+          this.masterDataList = res.data;
 
           for (let i = 0; i < this.masterDataList.length; i++) {
             const curItem = this.masterDataList[i];
             this.calcDistance(curItem);
 
-
+            // Infinite load means we are moving data around more
             if (i < 25) {
               this.dataList.push(this.masterDataList[i]);
             }
@@ -92,12 +144,9 @@ export class ListPage implements OnInit {
 
           this.finalFilterPass();
         }
-      }).catch(async (error) => {
-        console.log('get error for specialkey-food ', error);
-        await this.loading.dismiss();
-        this.noSavedData = true;
       });
     });
+
   }
 
   async presentLoading() {
@@ -116,12 +165,13 @@ export class ListPage implements OnInit {
     return returnValue.toFixed(2);
   }
 
-  finalFilterPass() {
+  async finalFilterPass() {
+    console.log('Checking Filter: ' + this.masterDataList.length);
     console.log('Distance Filter=' + this.distanceFilter);
     console.log('Category Filter=' + this.categoryFilter);
     console.log(' Search  Filter=' + this.searchFilter);
 
-    this.filterData = this.masterDataList.filter(async curItem => {
+    this.filterData = this.masterDataList.filter(curItem => {
       // Organization is required. This is a sanity check if it doesn't show up
       if (curItem.name) {
 
@@ -131,13 +181,11 @@ export class ListPage implements OnInit {
 
           if (this.searchFilter === '' || jsonString.indexOf(this.searchFilter.toLowerCase()) > -1) {
 
-            if (this.categoryFilter === '' || this.categoryFilter.indexOf(curItem.subcategory.name.toLowerCase()) > -1) {
-              await this.loading.dismiss();
+            if (this.categoryFilterString === '' || this.categoryFilterString.indexOf(curItem.subcategory.name.toLowerCase()) > -1) {
               return true;
             }
           }
         }
-        await this.loading.dismiss();
         return false;
       }
     });
@@ -156,6 +204,7 @@ export class ListPage implements OnInit {
       this.dataList.push(this.filterData[i]);
     }
 
+    await this.loading.dismiss();
     console.log('sync complete=Total:' + this.filterData.length + ' ->' + this.dataList.length);
     console.log('Local Arrays filtered by search. Count: ' + this.filterData.length);
   }
@@ -174,9 +223,16 @@ export class ListPage implements OnInit {
     if (evt) {
       this.categoryFilterCount = evt.srcElement.value.length;
       this.categoryFilter = (evt.srcElement.value).toString().toLowerCase();
-    }
 
-    this.finalFilterPass();
+      const categoryArray = this.categoryFilter.split(',');
+
+      for (const curCategory of this.categoryData) {
+        if (categoryArray.includes(curCategory.id.toString())) {
+          // console.log('Found Category: ' + curCategory.type);
+          this.categoryFilterString = this.categoryFilterString + ',' + curCategory.value.toLowerCase();
+        }
+      }
+    }
   }
 
   filterByDistance(evt?) {

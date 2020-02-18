@@ -35,17 +35,19 @@ export class HomePage implements OnInit {
 
   map: GoogleMap;
 
-  private masterDataList: any = [];
-  private filterData: any = [];
+  private masterDataList: any = [];  // This array never changes
+  private filterData: any = []; // This array is the one thats displayed
 
   private searchFilter = '';
   private categoryFilter = '';
+  private categoryFilterString = '';
   private distanceFilter = 20;
 
   zone: NgZone;
 
   private categoryData = [];
   private distanceData = [];
+  private currentCategoryValues = [];
   private categoryFilterCount: number;
 
   public noSavedData = false;
@@ -92,8 +94,25 @@ export class HomePage implements OnInit {
     this.filterhelper.getMyLatLng().then((resp) => {
       console.log('Got Lat/LNG...');
       this.categoryData = this.filterhelper.getCategoryData();
-      this.categoryFilterCount = this.filterhelper.getCategoryCounter();
       this.distanceData = this.filterhelper.getDistanceData();
+
+      this.filterhelper.getChosenCategories().then((categoriesResult) => {
+        if (!categoriesResult) {
+          this.currentCategoryValues = this.filterhelper.defaultCategoryValues;
+          this.categoryFilterCount = this.currentCategoryValues.length;
+        } else {
+          this.currentCategoryValues = categoriesResult;
+          this.categoryFilterCount = this.currentCategoryValues.length;
+        }
+      });
+
+      this.filterhelper.getChosenDistance().then((distanceResult) => {
+        if (!distanceResult) {
+          this.distanceFilter = 20;
+        } else {
+          this.distanceFilter = distanceResult;
+        }
+      });
 
       this.apiService.retrieveData().then(async (res) => {
 
@@ -180,7 +199,7 @@ export class HomePage implements OnInit {
 
           if (this.searchFilter === '' || jsonString.indexOf(this.searchFilter.toLowerCase()) > -1) {
 
-            if (this.categoryFilter === '' || this.categoryFilter.indexOf(curItem.subcategory.name.toLowerCase()) > -1) {
+            if (this.categoryFilterString === '' || this.categoryFilterString.indexOf(curItem.subcategory.name.toLowerCase()) > -1) {
 
               return true;
             }
@@ -210,6 +229,15 @@ export class HomePage implements OnInit {
     if (evt) {
       this.categoryFilterCount = evt.srcElement.value.length;
       this.categoryFilter = (evt.srcElement.value).toString().toLowerCase();
+
+      const categoryArray = this.categoryFilter.split(',');
+
+      for (const curCategory of this.categoryData) {
+        if (categoryArray.includes(curCategory.id.toString())) {
+          // console.log('Found Category: ' + curCategory.type);
+          this.categoryFilterString = this.categoryFilterString + ',' + curCategory.value.toLowerCase();
+        }
+      }
     }
 
     this.finalFilterPass();
@@ -276,17 +304,17 @@ export class HomePage implements OnInit {
 
       let myIcon = 'red';
 
-      if (curLocation.Category === 'Food Pantries') {
+      if (curLocation.subcategory.name.toLowerCase() === 'food pantry') {
         myIcon = 'blue';
-      } else if (curLocation.Category === 'Community Meals') {
+      } else if (curLocation.subcategory.name.toLowerCase() === 'Community Meals') {
         myIcon = 'orange';
-      } else if (curLocation.Category === 'SNAP') {
+      } else if (curLocation.subcategory.name.toLowerCase() === 'SNAP') {
         myIcon = 'yellow';
-      } else if (curLocation.Category === 'Medical Assistance') {
+      } else if (curLocation.subcategory.name.toLowerCase() === 'Medical Assistance') {
         myIcon = 'cyan';
-      } else if (curLocation.Category === 'Veggie Mobile') {
+      } else if (curLocation.subcategory.name.toLowerCase() === 'Veggie Mobile') {
         myIcon = 'green';
-      } else if (curLocation.Category === 'Misc') {
+      } else if (curLocation.subcategory.name.toLowerCase() === 'Misc') {
         myIcon = 'magenta';
       }
 

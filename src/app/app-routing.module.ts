@@ -16,7 +16,10 @@ const routes: Routes = [
     loadChildren: './list/list.module#ListPageModule'
   },
   { path: 'modal', loadChildren: './modal/modal.module#ModalPageModule' },
-  { path: 'stub', loadChildren: './stub/stub.module#StubPageModule' }
+  { path: 'stub', loadChildren: './stub/stub.module#StubPageModule' },
+  { path: 'about', loadChildren: './about/about.module#AboutPageModule' },
+  { path: 'settings', loadChildren: './settings/settings.module#SettingsPageModule' },
+  { path: 'help', loadChildren: './help/help.module#HelpPageModule' }
 ];
 
 @NgModule({
