@@ -1,12 +1,14 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnInit } from '@angular/core';
 import { CallNumber } from '@ionic-native/call-number/ngx';
 import { InAppBrowser, InAppBrowserOptions } from '@ionic-native/in-app-browser/ngx';
+import { FavoritehelperService } from './favoritehelper.service';
 
 @Injectable({
   providedIn: 'root'
 })
 
 export class ActionhelperService {
+
 
   options: InAppBrowserOptions = {
     location: 'yes', // Or 'no'
@@ -26,12 +28,15 @@ export class ActionhelperService {
     fullscreen: 'yes', // Windows only
   };
 
-  constructor(private callNumber: CallNumber, private iab: InAppBrowser) { }
+  public favoritesList: any = []; // This array is full of just numbers
+
+  constructor(private callNumber: CallNumber, private iab: InAppBrowser, private favoriteService: FavoritehelperService) { }
 
 
-  getActionMapping(selectedItem): Array<any> {
+  getActionMapping(selectedItem, temp?): Array<any> {
 
     const actionSheetOptions = [];
+    // console.log('BOO: ' + this.favoriteService.isFavorite(selectedItem.id));
 
     // Everything has an address
     actionSheetOptions.push({
@@ -39,7 +44,7 @@ export class ActionhelperService {
       icon: 'map',
       handler: () => {
         console.log('Action Item: Directions');
-        const addresss = selectedItem.line_1 + ' ' + selectedItem.city + ' ' +  selectedItem.state  + ' ' + selectedItem.zip;
+        const addresss = selectedItem.line_1 + ' ' + selectedItem.city + ' ' + selectedItem.state + ' ' + selectedItem.zip;
         this.openWithSystemBrowser('https://maps.google.com/maps?q=' + addresss);
       }
     });
@@ -54,10 +59,34 @@ export class ActionhelperService {
       }
     });
 
+    // Handle Favorite functionality
+    if (!temp) {
+      actionSheetOptions.push({
+        text: 'Favorite',
+        icon: 'heart',
+        handler: () => {
+          console.log('Action Item: Save');
+          this.favoriteService.favoriteOrganization(selectedItem.id);
+        }
+      });
+    }
+
+    // Handle Favorite functionality
+    if (temp) {
+      actionSheetOptions.push({
+        text: 'Unfavorite',
+        icon: 'heart-outline',
+        handler: () => {
+          console.log('Action Item: Unsave');
+          this.favoriteService.unfavoriteOrganization(selectedItem.id);
+        }
+      });
+    }
+
     // If there is a phone number, add a call option
     if (selectedItem.phone != null && selectedItem.phone !== '') {
       actionSheetOptions.push({
-        text: 'Call ' + selectedItem.name,
+        text: 'Call ' + selectedItem.phone,
         icon: 'call',
         handler: () => {
           console.log('Action Item: Call');

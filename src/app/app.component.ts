@@ -23,6 +23,11 @@ export class AppComponent {
       icon: 'list'
     },
     {
+      title: 'Favorites',
+      url: '/saved',
+      icon: 'save'
+    },
+    {
       title: 'Settings',
       url: '/settings',
       icon: 'settings'
@@ -50,17 +55,6 @@ export class AppComponent {
 
   initializeApp() {
     this.platform.ready().then(() => {
-/*
-      Environment.setEnv({
-        // Api key for your server
-        // (Make sure the api key should have Website restrictions for your website domain only)
-        API_KEY_FOR_BROWSER_RELEASE: 'AIzaSyAajY7ixSZ0sxYMg38bbn8xb6JRZROYasQ',
-
-        // Api key for local development
-        // (Make sure the api key should have Website restrictions for 'http://localhost' only)
-        API_KEY_FOR_BROWSER_DEBUG: 'AIzaSyAajY7ixSZ0sxYMg38bbn8xb6JRZROYasQ'
-      });
-*/
 
       this.statusBar.styleDefault();
       this.splashScreen.hide();

@@ -67,7 +67,7 @@ export class ListPage implements OnInit {
 
     // First lets get your current location
     this.filterhelper.getMyLatLng().then((resp) => {
-      console.log('Got Lat/LNG...');
+      // console.log('Got Lat/LNG...');
       this.categoryData = this.filterhelper.getCategoryData();
       this.distanceData = this.filterhelper.getDistanceData();
 
@@ -93,43 +93,13 @@ export class ListPage implements OnInit {
 
         if (!res) {
           console.log('Error retrieving fresh data!');
-
-          this.apiService.getLocalData('specialkey-food').then(async (val) => {
-
-            if (!val) {
-              console.log('Error retreiving local data!');
-              await this.loading.dismiss();
-              this.noSavedData = true;
-            } else {
-              console.log(val);
-              console.log('Listview: Initializing data ' + val.length);
-
-              this.masterDataList = val;
-
-              for (let i = 0; i < this.masterDataList.length; i++) {
-                const curItem = this.masterDataList[i];
-                this.calcDistance(curItem);
-
-                // Infinite load means we are moving data around more
-                if (i < 25) {
-                  this.dataList.push(this.masterDataList[i]);
-                }
-                this.filterData.push(this.masterDataList[i]);
-              }
-
-              this.finalFilterPass();
-            }
-          }).catch(async (error) => {
-            console.log('get error for specialkey-food ', error);
-            await this.loading.dismiss();
-            this.noSavedData = true;
-          });
-
+          await this.loading.dismiss();
+          this.noSavedData = true;
         } else {
-          console.log(res.data);
-          console.log('Listview: Initializing data ' + res.data.length);
+          console.log(res);
+          console.log('Listview: Initializing data ' + res.length);
 
-          this.masterDataList = res.data;
+          this.masterDataList = res;
 
           for (let i = 0; i < this.masterDataList.length; i++) {
             const curItem = this.masterDataList[i];
@@ -142,7 +112,7 @@ export class ListPage implements OnInit {
             this.filterData.push(this.masterDataList[i]);
           }
 
-          this.finalFilterPass();
+          this.finalFilterPass().then(async () => { await this.loading.dismiss(); });
         }
       });
     });
@@ -204,7 +174,7 @@ export class ListPage implements OnInit {
       this.dataList.push(this.filterData[i]);
     }
 
-    await this.loading.dismiss();
+    // await this.loading.dismiss();
     console.log('sync complete=Total:' + this.filterData.length + ' ->' + this.dataList.length);
     console.log('Local Arrays filtered by search. Count: ' + this.filterData.length);
   }
@@ -238,7 +208,6 @@ export class ListPage implements OnInit {
   filterByDistance(evt?) {
 
     if (evt) {
-
       this.distanceFilter = Number(evt.srcElement.value);
       console.log(this.distanceFilter + ' has changed distance filter value');
     }

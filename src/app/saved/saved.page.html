@@ -1,0 +1,54 @@
+<ion-header>
+  <ion-toolbar color="captain">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Saved Organizations</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list *ngIf="this.noFavoriteData === true">
+    <ion-item>
+      <ion-card class="ion-text-wrap">
+        <ion-card-header color="warning">No favorites have been saved yet!</ion-card-header>
+        <ion-card-content>
+          <h2>You don't have any favorites saved yet. When you do, they will appear here!</h2>
+        </ion-card-content>
+      </ion-card>
+    </ion-item>
+  </ion-list>
+
+  <ion-list *ngIf="this.noSavedData === true">
+    <ion-item>
+      <ion-card class="ion-text-wrap">
+        <ion-card-header color="danger">Can not retrieve data</ion-card-header>
+        <ion-card-content>
+          <h2>You are offline, and no saved data can be found. Please reconnect to the internet and refresh to see
+            the
+            directory</h2>
+        </ion-card-content>
+      </ion-card>
+    </ion-item>
+  </ion-list>
+
+  <!--This condition is breaking teh template-->
+  <ion-list *ngIf="dataList.length > 0">
+    <ion-item button (click)="presentActionSheet(item)" *ngFor="let item of dataList">
+
+      <ion-card class="ion-text-wrap">
+        <ion-card-header color="captain">{{ item.name }}</ion-card-header>
+        <ion-card-content>
+          <strong>Id:</strong>{{item.id}}<br>
+          <strong>Address: </strong>{{item.line_1}} {{item.city}} {{item.state}} {{item.zip}}<br>
+          <strong>Hours: </strong>{{item.hours_of_operation}}<br>
+          <strong>Notes: </strong>{{item.info}}<br>
+          <strong>Category: </strong>{{item.subcategory.name}}<br>
+           
+        </ion-card-content>
+      </ion-card>
+
+    </ion-item>
+  </ion-list>
+
+</ion-content>

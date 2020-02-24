@@ -45,7 +45,6 @@ export class SettingsPage implements OnInit {
 
   }
 
-
   compareWithFn = (o1, o2) => {
     return o1 && o2 ? o1.id === o2.id : o1 === o2;
   }
@@ -53,6 +52,8 @@ export class SettingsPage implements OnInit {
   async updateCategoryPreferences(evt?) {
     if (evt) {
       this.categoryFilterCount = evt.srcElement.value.length;
+      console.log('Category Filter has changed: ' + this.categoryFilterCount);
+
       this.filterhelper.setChosenCategories(evt.srcElement.value);
       this.presentToast();
     }
@@ -61,7 +62,7 @@ export class SettingsPage implements OnInit {
   updateDistancePreferences(evt?) {
     if (evt) {
       this.distanceFilter = Number(evt.srcElement.value);
-      console.log(this.distanceFilter + ' has changed distance filter value2');
+      console.log('Distance Filter has changed: ' + this.distanceFilter);
 
       this.filterhelper.setChosenDistance(this.distanceFilter);
       this.presentToast();

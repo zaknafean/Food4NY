@@ -118,39 +118,13 @@ export class HomePage implements OnInit {
 
         if (!res) {
           console.log('Error retrieving fresh data!');
-
-          this.apiService.getLocalData('specialkey-food').then(async (val) => {
-
-            if (!val) {
-              console.log('Error retreiving local data!');
-              await this.loading.dismiss();
-              this.noSavedData = true;
-            } else {
-              console.log(val);
-              console.log('Listview: Initializing data ' + val.length);
-
-              this.masterDataList = val;
-
-              // tslint:disable-next-line:prefer-for-of
-              for (let i = 0; i < this.masterDataList.length; i++) {
-                const curItem = this.masterDataList[i];
-                this.calcDistance(curItem);
-              }
-
-              this.finalFilterPass();
-              this.loadMap();
-            }
-          }).catch(async (error) => {
-            console.log('get error for specialkey-food ', error);
-            await this.loading.dismiss();
-            this.noSavedData = true;
-          });
-
+          await this.loading.dismiss();
+          this.noSavedData = true;
         } else {
-          console.log(res.data);
-          console.log('Listview: Initializing data ' + res.data.length);
+          console.log(res);
+          console.log('Listview: Initializing data ' + res.length);
 
-          this.masterDataList = res.data;
+          this.masterDataList = res;
 
           // tslint:disable-next-line:prefer-for-of
           for (let i = 0; i < this.masterDataList.length; i++) {

@@ -1,15 +1,9 @@
 import { Injectable } from '@angular/core';
-// import { HttpClient, HttpClientJsonpModule } from '@angular/common/http';
-import { Platform } from '@ionic/angular';
 import { HTTP } from '@ionic-native/http/ngx';
 import { Storage } from '@ionic/storage';
-import { Observable, from } from 'rxjs';
-import { tap, map, catchError } from 'rxjs/operators';
 
 
-
-const API_STORAGE_KEY = 'specialkey';
-// const API_URL = '/api';
+const API_STORAGE_KEY = 'pantryEntries';
 const API_URL = 'https://map.thefoodpantries.org/api/entities';
 
 
@@ -19,70 +13,83 @@ const API_URL = 'https://map.thefoodpantries.org/api/entities';
 
 export class ApicallerService {
 
-  apiKey = ''; // <-- Enter your own key here!
-
   /**
    * Constructor of the Service with Dependency Injection
-   * @param http The standard Angular HttpClient to make requests
    */
-  constructor(private platform: Platform, private nativeHttp: HTTP, private storage: Storage, ) { }
+  constructor(private nativeHttp: HTTP, private storage: Storage, ) { }
 
   /**
-   * Get data from the REST Endoint
-   * map the result and save it locally
-   *
-   * @returns Observable with the search results
+   * Primary retrival, called on page load. It does the following
+   * 1) Checks if there is local data. If not or it is 'stale'...
+   *  a) Call out to ther end point
+   *  b) Check if we recieved a response
+   *  c) If no, return null and giv eup
+   *  d) If yes, parse the data, store it, and return it
+   * 2) Otherwise, return the data
+   * @returns Promise of an array of parsed JSON data
    */
   async retrieveData(): Promise<any> {
     console.log('Calling retrieveData in apicaller.service');
-    console.log('Retrieving new data from: ' + API_URL);
 
-    const results = await this.nativeHttp.get(`${API_URL}`, {}, {})
-      .catch(error => {
-        console.log(error.error); // error message as string
-        return null;
-      });
-
-    // If this happens it means no network connection, or the API is down.
-    if (results === null) {
-      return null;
-    } else {
-
-      const data = JSON.parse(results.data);
-      // console.log(data);
-      this.storage.set(`${API_STORAGE_KEY}-food`, data)
-        .then((response) => {
-          console.log('setLocalData: Local Data set at ' + `${API_STORAGE_KEY}-food`);
-          return response;
-        }).catch((error) => {
-          console.log('setLocalData B: ' + `${API_STORAGE_KEY}-food` + ' ', error);
+    // See if we have local data first
+    const results = await this.getLocalData('moo').then(async (respose) => {
+      // Case 1: No fresh data
+      if (respose === null) {
+        console.log('Retrieving new data from: ' + API_URL);
+        const apiResponse = await this.nativeHttp.get(`${API_URL}`, {}, {}).catch(error => {
+          console.log('Error retrieving fresh data. Cant recover: ' + error);
+          return null;
         });
-      return data;
-    }
+        if (apiResponse === null || apiResponse === undefined) {
+          console.log('Error response recieved from server, but it was null data');
+          return null;
+        } else {
+
+          const responseData = JSON.parse(apiResponse.data);
+          this.storage.set(API_STORAGE_KEY, responseData).then((setResponse) => {
+            console.log('setLocalData: Local Data set at ' + API_STORAGE_KEY);
+            return setResponse;
+          }).catch((error) => {
+            console.log('setLocalData B: ' + API_STORAGE_KEY + ' ', error);
+          });
+          // Fail safe return in case set fails somehow
+          return responseData;
+        }
+
+      } else {
+        // Case 2: Local Data
+        console.log('Found data, no need to get fresh data: ');
+        return respose;
+      }
+
+    });
+
+    return results;
   }
 
   // Save result of API requests
-  public setLocalData(key: string, data: any) {
-    // const key = 'food';
+  public setLocalData(data: any) {
     console.log('Calling setLocalData in apicaller.service');
-    this.storage.set(`${API_STORAGE_KEY}-${key}`, data).then((response) => {
-      console.log('setLocalData: Local Data set at ' + `${API_STORAGE_KEY}-${key}`);
+
+    this.storage.set(API_STORAGE_KEY, data).then(() => {
+      console.log('setLocalData: Local Data set at ' + API_STORAGE_KEY);
     }).catch((error) => {
-      console.log('setLocalData B: ' + `${API_STORAGE_KEY}-${key}` + ' ', error);
+      console.log('setLocalData B: ' + API_STORAGE_KEY + ' ', error);
     });
   }
 
-  // Get cached API result
+  // Get existing data
   public getLocalData(key: string): Promise<any> {
     console.log('Calling getLocalData in apicaller.service');
-    const refreshData = false;
-    console.log('trying to get local data=' + key);
-    const retVal = this.storage.get(key).then((resp) => {
-      // console.log(resp);
-      return resp.data;
-    });
 
-    return retVal;
+    return this.storage.get(API_STORAGE_KEY).then((storageResponse) => {
+      // Null is possible on a first run. Account for it'
+      if (storageResponse === null || storageResponse === undefined) {
+        return null;
+      }
+
+      return storageResponse.data;
+    });
   }
 
 }
