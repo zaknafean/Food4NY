@@ -5,6 +5,7 @@ import { ActionhelperService } from '../services/actionhelper.service';
 import { Network } from '@ionic-native/network/ngx';
 import { FilterhelperService } from '../services/filterhelper.service';
 import { LoadingController } from '@ionic/angular';
+import { FavoritehelperService } from '../services/favoritehelper.service';
 
 
 @Component({
@@ -48,7 +49,7 @@ export class ListPage implements OnInit {
 
   constructor(private apiService: ApicallerService, public actionSheetController: ActionSheetController,
     // tslint:disable-next-line:align
-    private actionhelper: ActionhelperService, public modalController: ModalController,
+    private actionhelper: ActionhelperService, public modalController: ModalController, private favoriteService: FavoritehelperService,
     // tslint:disable-next-line:align
     private filterhelper: FilterhelperService, private network: Network, public loadingController: LoadingController) {
 
@@ -222,14 +223,18 @@ export class ListPage implements OnInit {
       console.log('Error: No item selected to show options for');
       return;
     }
+    this.favoriteService.isFavorite(selectedItem.id).then(async (favoriteResponse) => {
 
-    const actionSheet = await this.actionSheetController.create({
-      header: selectedItem.name,
-      subHeader: selectedItem.hours_of_operation,
-      buttons: this.actionhelper.getActionMapping(selectedItem)
+      const actionSheet = await this.actionSheetController.create({
+        header: selectedItem.name,
+        subHeader: selectedItem.hours_of_operation,
+        buttons: this.actionhelper.getActionMapping(selectedItem, favoriteResponse)
+      });
+
+      await actionSheet.present();
+
     });
 
-    await actionSheet.present();
   }
 
   doInfinite(event) {

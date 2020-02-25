@@ -77,14 +77,18 @@ export class SavedPage implements OnInit {
       console.log('Error: No item selected to show options for');
       return;
     }
+    this.favoriteService.isFavorite(selectedItem.id).then(async (favoriteResponse) => {
 
-    const actionSheet = await this.actionSheetController.create({
-      header: selectedItem.name,
-      subHeader: selectedItem.hours_of_operation,
-      buttons: this.actionhelper.getActionMapping(selectedItem,  true)
+      const actionSheet = await this.actionSheetController.create({
+        header: selectedItem.name,
+        subHeader: selectedItem.hours_of_operation,
+        buttons: this.actionhelper.getActionMapping(selectedItem, favoriteResponse)
+      });
+
+      await actionSheet.present();
+
     });
 
-    await actionSheet.present();
   }
 
   async presentLoading() {

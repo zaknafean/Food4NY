@@ -22,6 +22,7 @@ import { NgZone } from '@angular/core';
 import { FilterhelperService } from '../services/filterhelper.service';
 import { Network } from '@ionic-native/network/ngx';
 import { LoadingController } from '@ionic/angular';
+import { FavoritehelperService } from '../services/favoritehelper.service';
 
 
 @Component({
@@ -67,7 +68,7 @@ export class HomePage implements OnInit {
 
   constructor(private platform: Platform, private apiService: ApicallerService, private actionhelper: ActionhelperService,
     // tslint:disable-next-line:align
-    public modalController: ModalController, public actionSheetController: ActionSheetController,
+    public modalController: ModalController, public actionSheetController: ActionSheetController, private favoriteService: FavoritehelperService,
     // tslint:disable-next-line:align
     private filterhelper: FilterhelperService, private network: Network, public loadingController: LoadingController) {
 
@@ -334,14 +335,18 @@ export class HomePage implements OnInit {
       console.log('Error: No item selected to show options for');
       return;
     }
+    this.favoriteService.isFavorite(selectedItem.id).then(async (favoriteResponse) => {
 
-    const actionSheet = await this.actionSheetController.create({
-      header: selectedItem.name,
-      subHeader: selectedItem.hours_of_operation,
-      buttons: this.actionhelper.getActionMapping(selectedItem)
+      const actionSheet = await this.actionSheetController.create({
+        header: selectedItem.name,
+        subHeader: selectedItem.hours_of_operation,
+        buttons: this.actionhelper.getActionMapping(selectedItem, favoriteResponse)
+      });
+
+      await actionSheet.present();
+
     });
 
-    await actionSheet.present();
   }
 
 }

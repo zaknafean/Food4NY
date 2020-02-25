@@ -33,7 +33,7 @@ export class ActionhelperService {
   constructor(private callNumber: CallNumber, private iab: InAppBrowser, private favoriteService: FavoritehelperService) { }
 
 
-  getActionMapping(selectedItem, temp?): Array<any> {
+  getActionMapping(selectedItem, isThisaFavorite): Array<any> {
 
     const actionSheetOptions = [];
     // console.log('BOO: ' + this.favoriteService.isFavorite(selectedItem.id));
@@ -60,10 +60,10 @@ export class ActionhelperService {
     });
 
     // Handle Favorite functionality
-    if (!temp) {
+    if (!isThisaFavorite) {
       actionSheetOptions.push({
         text: 'Favorite',
-        icon: 'heart',
+        icon: 'heart-empty',
         handler: () => {
           console.log('Action Item: Save');
           this.favoriteService.favoriteOrganization(selectedItem.id);
@@ -72,10 +72,10 @@ export class ActionhelperService {
     }
 
     // Handle Favorite functionality
-    if (temp) {
+    if (isThisaFavorite) {
       actionSheetOptions.push({
         text: 'Unfavorite',
-        icon: 'heart-outline',
+        icon: 'heart',
         handler: () => {
           console.log('Action Item: Unsave');
           this.favoriteService.unfavoriteOrganization(selectedItem.id);
