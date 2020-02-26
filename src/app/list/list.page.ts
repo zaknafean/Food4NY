@@ -67,8 +67,8 @@ export class ListPage implements OnInit {
     await this.presentLoading();
 
     // First lets get your current location
-    this.filterhelper.getMyLatLng().then((resp) => {
-      // console.log('Got Lat/LNG...');
+    this.filterhelper.getMyLatLng().then(() => {
+
       this.categoryData = this.filterhelper.getCategoryData();
       this.distanceData = this.filterhelper.getDistanceData();
 
@@ -90,14 +90,12 @@ export class ListPage implements OnInit {
         }
       });
 
-      this.apiService.retrieveData().then(async (res) => {
+      this.apiService.retrieveData().then((res) => {
 
         if (!res) {
           console.log('Error retrieving fresh data!');
-          await this.loading.dismiss();
           this.noSavedData = true;
         } else {
-          console.log(res);
           console.log('Listview: Initializing data ' + res.length);
 
           this.masterDataList = res;
@@ -113,8 +111,12 @@ export class ListPage implements OnInit {
             this.filterData.push(this.masterDataList[i]);
           }
 
-          this.finalFilterPass().then(async () => { await this.loading.dismiss(); });
+          this.finalFilterPass();
         }
+      }).catch((error) => {
+        console.log('ListPage Retrieval Error: ', error);
+      }).finally(() => {
+        this.loading.dismiss();
       });
     });
 
@@ -253,5 +255,15 @@ export class ListPage implements OnInit {
         event.target.disabled = true;
       }
     }, 500);
+  }
+
+  doRefresh(event) {
+    console.log('Begin async operation');
+
+    setTimeout(() => {
+      this.presentInformation();
+      console.log('Async operation has ended');
+      event.target.complete();
+    }, 2000);
   }
 }

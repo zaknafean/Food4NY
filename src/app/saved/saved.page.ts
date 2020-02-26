@@ -41,11 +41,10 @@ export class SavedPage implements OnInit {
         console.log(favoriteResponse);
         console.log('Savedview: Initializing data ' + favoriteResponse.length);
 
-        this.apiService.retrieveData().then(async (res) => {
+        this.apiService.retrieveData().then((res) => {
 
           if (!res) {
             console.log('Error retrieving fresh data!');
-            await this.loading.dismiss();
             this.noSavedData = true;
           } else {
 
@@ -98,6 +97,16 @@ export class SavedPage implements OnInit {
     });
     // Present the loading controller
     await this.loading.present();
+  }
+
+  doRefresh(event) {
+    console.log('Begin async operation');
+
+    setTimeout(() => {
+      this.presentInformation();
+      console.log('Async operation has ended');
+      event.target.complete();
+    }, 2000);
   }
 
 }

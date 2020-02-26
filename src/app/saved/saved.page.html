@@ -8,6 +8,10 @@
 </ion-header>
 
 <ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+  
   <ion-list *ngIf="this.noFavoriteData === true">
     <ion-item>
       <ion-card class="ion-text-wrap">
@@ -39,12 +43,11 @@
       <ion-card class="ion-text-wrap">
         <ion-card-header color="captain">{{ item.name }}</ion-card-header>
         <ion-card-content>
-          <strong>Id:</strong>{{item.id}}<br>
           <strong>Address: </strong>{{item.line_1}} {{item.city}} {{item.state}} {{item.zip}}<br>
           <strong>Hours: </strong>{{item.hours_of_operation}}<br>
           <strong>Notes: </strong>{{item.info}}<br>
           <strong>Category: </strong>{{item.subcategory.name}}<br>
-           
+          
         </ion-card-content>
       </ion-card>
 

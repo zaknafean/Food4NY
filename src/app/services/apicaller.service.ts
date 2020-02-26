@@ -4,6 +4,7 @@ import { Storage } from '@ionic/storage';
 
 
 const API_STORAGE_KEY = 'pantryEntries';
+const REFRESH_TIME_KEY = 'lastRefresh';
 const API_URL = 'https://map.thefoodpantries.org/api/entities';
 
 
@@ -30,11 +31,13 @@ export class ApicallerService {
    */
   async retrieveData(): Promise<any> {
     console.log('Calling retrieveData in apicaller.service');
+    const forceRefresh = await this.isRefreshTime();
+    console.log('ForceRefresh? ' + forceRefresh);
 
     // See if we have local data first
     const results = await this.getLocalData('moo').then(async (respose) => {
       // Case 1: No fresh data
-      if (respose === null) {
+      if (respose === null || forceRefresh) {
         console.log('Retrieving new data from: ' + API_URL);
         const apiResponse = await this.nativeHttp.get(`${API_URL}`, {}, {}).catch(error => {
           console.log('Error retrieving fresh data. Cant recover: ' + error);
@@ -47,13 +50,15 @@ export class ApicallerService {
 
           const responseData = JSON.parse(apiResponse.data);
           this.storage.set(API_STORAGE_KEY, responseData).then((setResponse) => {
-            console.log('setLocalData: Local Data set at ' + API_STORAGE_KEY);
-            return setResponse;
+            this.setRefreshTime();
+            console.log('setLocalData: Local Data set, entry count: ' + setResponse.data.length);
+            return setResponse.data;
           }).catch((error) => {
-            console.log('setLocalData B: ' + API_STORAGE_KEY + ' ', error);
+            console.log('setLocalData Error: ' + API_STORAGE_KEY + ' ', error);
           });
+
           // Fail safe return in case set fails somehow
-          return responseData;
+          return responseData.data;
         }
 
       } else {
@@ -65,6 +70,42 @@ export class ApicallerService {
     });
 
     return results;
+  }
+
+  public setRefreshTime() {
+    console.log('Calling setRefreshTime in apicaller.service');
+    const curDate: Date = new Date();
+
+    this.storage.set(REFRESH_TIME_KEY, curDate.getTime()).then(() => {
+      console.log('setRefreshTime: Local Data set at ' + REFRESH_TIME_KEY + curDate.getTime());
+    }).catch((error) => {
+      console.log('setRefreshTime Error: ' + REFRESH_TIME_KEY + ' ', error);
+    });
+  }
+
+  public removeRefreshTime() {
+    console.log('Calling removeRefreshTime in apicaller.service');
+    const curDate: Date = new Date();
+
+    this.storage.remove(REFRESH_TIME_KEY).then(() => {
+      console.log('removeRefreshTime: Local Data set at ' + REFRESH_TIME_KEY);
+    }).catch((error) => {
+      console.log('removeRefreshTime Error: ' + REFRESH_TIME_KEY + ' ', error);
+    });
+  }
+
+  async isRefreshTime() {
+    const result = await this.storage.get(REFRESH_TIME_KEY);
+    let retVal = false;
+    const curDate: Date = new Date();
+    const timeDiff = curDate.getTime() - result;
+    // console.log('Comparing time to ' + result + ' = ' + timeDiff);
+
+    if (timeDiff > 86400000 || result === null) {
+      retVal = true;
+    }
+
+    return retVal;
   }
 
   // Save result of API requests

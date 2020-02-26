@@ -115,15 +115,13 @@ export class HomePage implements OnInit {
         }
       });
 
-      this.apiService.retrieveData().then(async (res) => {
+      this.apiService.retrieveData().then((res) => {
 
         if (!res) {
           console.log('Error retrieving fresh data!');
-          await this.loading.dismiss();
           this.noSavedData = true;
         } else {
-          console.log(res);
-          console.log('Listview: Initializing data ' + res.length);
+          console.log('Homeview: Initializing data ' + res.length);
 
           this.masterDataList = res;
 
@@ -136,6 +134,10 @@ export class HomePage implements OnInit {
           this.finalFilterPass();
           this.loadMap();
         }
+      }).catch((error) => {
+        console.log('HomePage Retrieval Error: ', error);
+      }).finally(() => {
+        this.loading.dismiss();
       });
     });
 
@@ -268,6 +270,8 @@ export class HomePage implements OnInit {
     }
 
     this.map.clear();
+    this.map.setCameraZoom(15);
+
     console.log('Populating Markers. Total Markers: ' + this.filterData.length);
 
     for (const curLocation of this.filterData) {
@@ -306,6 +310,23 @@ export class HomePage implements OnInit {
       // show the infoWindow, this causes the last loaded marker to become the starting point
       // marker.showInfoWindow();
 
+      marker.on(GoogleMapsEvent.INFO_CLICK).subscribe(() => {
+
+        // This zone thing makes sure the UI keeps up with changes to the model somehow
+        this.zone.run(() => {
+
+          // Move the map camera to the location with animation
+          this.map.animateCamera({
+            target: curLatLng,
+            zoom: 20,
+            duration: 1000
+          });
+
+          this.presentActionSheet(curLocation);
+        });
+
+      });
+
       // If clicked it, display the alert
       marker.on(GoogleMapsEvent.MARKER_CLICK).subscribe(() => {
 
@@ -315,7 +336,7 @@ export class HomePage implements OnInit {
           // Move the map camera to the location with animation
           this.map.animateCamera({
             target: curLatLng,
-            zoom: 18,
+            zoom: 20,
             duration: 1000
           });
 
