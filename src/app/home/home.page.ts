@@ -93,7 +93,7 @@ export class HomePage implements OnInit {
 
     // First lets get your current location
     this.filterhelper.getMyLatLng().then((resp) => {
-      console.log('Got Lat/LNG...');
+      // console.log('Got Lat/LNG...');
       this.categoryData = this.filterhelper.getCategoryData();
       this.distanceData = this.filterhelper.getDistanceData();
 
@@ -136,9 +136,11 @@ export class HomePage implements OnInit {
         }
       }).catch((error) => {
         console.log('HomePage Retrieval Error: ', error);
-      }).finally(() => {
-        this.loading.dismiss();
-      });
+      })
+    }).catch((error) => {
+      console.log('HomePage Lat/Lng Error: ', error);
+    }).finally(() => {
+      this.loading.dismiss();
     });
 
   }
