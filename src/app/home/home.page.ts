@@ -92,53 +92,52 @@ export class HomePage implements OnInit {
     await this.presentLoading();
 
     // First lets get your current location
-    this.filterhelper.getMyLatLng().then((resp) => {
-      // console.log('Got Lat/LNG...');
-      this.categoryData = this.filterhelper.getCategoryData();
-      this.distanceData = this.filterhelper.getDistanceData();
+    await this.filterhelper.getMyLatLng();
 
-      this.filterhelper.getChosenCategories().then((categoriesResult) => {
-        if (!categoriesResult) {
-          this.currentCategoryValues = this.filterhelper.defaultCategoryValues;
-          this.categoryFilterCount = this.currentCategoryValues.length;
-        } else {
-          this.currentCategoryValues = categoriesResult;
-          this.categoryFilterCount = this.currentCategoryValues.length;
+    //.then((resp) => {
+    // console.log('Got Lat/LNG...');
+    this.categoryData = this.filterhelper.getCategoryData();
+    this.distanceData = this.filterhelper.getDistanceData();
+
+    this.filterhelper.getChosenCategories().then((categoriesResult) => {
+      if (!categoriesResult) {
+        this.currentCategoryValues = this.filterhelper.defaultCategoryValues;
+        this.categoryFilterCount = this.currentCategoryValues.length;
+      } else {
+        this.currentCategoryValues = categoriesResult;
+        this.categoryFilterCount = this.currentCategoryValues.length;
+      }
+    });
+
+    this.filterhelper.getChosenDistance().then((distanceResult) => {
+      if (!distanceResult) {
+        this.distanceFilter = 20;
+      } else {
+        this.distanceFilter = distanceResult;
+      }
+    });
+
+    this.apiService.retrieveData().then((res) => {
+
+      if (!res) {
+        console.log('Error retrieving fresh data!');
+        this.noSavedData = true;
+      } else {
+        console.log('Homeview: Initializing data ' + res.length);
+
+        this.masterDataList = res;
+
+        // tslint:disable-next-line:prefer-for-of
+        for (let i = 0; i < this.masterDataList.length; i++) {
+          const curItem = this.masterDataList[i];
+          this.calcDistance(curItem);
         }
-      });
 
-      this.filterhelper.getChosenDistance().then((distanceResult) => {
-        if (!distanceResult) {
-          this.distanceFilter = 20;
-        } else {
-          this.distanceFilter = distanceResult;
-        }
-      });
-
-      this.apiService.retrieveData().then((res) => {
-
-        if (!res) {
-          console.log('Error retrieving fresh data!');
-          this.noSavedData = true;
-        } else {
-          console.log('Homeview: Initializing data ' + res.length);
-
-          this.masterDataList = res;
-
-          // tslint:disable-next-line:prefer-for-of
-          for (let i = 0; i < this.masterDataList.length; i++) {
-            const curItem = this.masterDataList[i];
-            this.calcDistance(curItem);
-          }
-
-          this.finalFilterPass();
-          this.loadMap();
-        }
-      }).catch((error) => {
-        console.log('HomePage Retrieval Error: ', error);
-      })
+        this.finalFilterPass();
+        this.loadMap();
+      }
     }).catch((error) => {
-      console.log('HomePage Lat/Lng Error: ', error);
+      console.log('HomePage Retrieval Error: ', error);
     }).finally(() => {
       this.loading.dismiss();
     });
@@ -162,10 +161,10 @@ export class HomePage implements OnInit {
   }
 
   finalFilterPass() {
-    console.log('Checking Filter: ' + this.masterDataList.length);
-    console.log('Distance Filter=' + this.distanceFilter);
-    console.log('Category Filter=' + this.categoryFilter);
-    console.log('Search Filter=' + this.searchFilter);
+    // console.log('Checking Filter: ' + this.masterDataList.length);
+    // console.log('Distance Filter=' + this.distanceFilter);
+    // console.log('Category Filter=' + this.categoryFilter);
+    // console.log('Search Filter=' + this.searchFilter);
 
     this.filterData = this.masterDataList.filter(curItem => {
       // Organization is required. This is a sanity check if it doesn't show up
@@ -189,7 +188,7 @@ export class HomePage implements OnInit {
       }
     });
 
-    console.log('Local Arrays filtered by. Count: ' + this.filterData.length);
+    console.log('Local Arrays filtered. Final Count: ' + this.filterData.length);
 
     this.populateMapMakers();
   }
@@ -309,6 +308,9 @@ export class HomePage implements OnInit {
         icon: myIcon
       });
 
+
+      this.map.getMyLocation()
+
       // show the infoWindow, this causes the last loaded marker to become the starting point
       // marker.showInfoWindow();
 
@@ -352,7 +354,7 @@ export class HomePage implements OnInit {
   }
 
   async presentActionSheet(selectedItem) {
-    console.log('ActionSheet: ' + selectedItem.name);
+    // console.log('ActionSheet: ' + selectedItem.name);
 
     if (selectedItem == null) {
       console.log('Error: No item selected to show options for');

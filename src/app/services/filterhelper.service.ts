@@ -17,7 +17,7 @@ export class FilterhelperService {
 
   categoryData = [];
   distanceChoices = [];
-  startingLatLng: ILatLng = {lat: 42.65155, lng: -73.75521};
+  startingLatLng: ILatLng = { lat: 42.65155, lng: -73.75521 };
 
   public defaultCategoryValues = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22];
 
@@ -161,6 +161,11 @@ export class FilterhelperService {
     this.distanceChoices = [
       {
         check: false,
+        type: 'Show All',
+        value: 5000
+      },
+      {
+        check: false,
         type: '5 miles',
         value: 5
       },
@@ -198,15 +203,15 @@ export class FilterhelperService {
 
   }
 
-  getMyLatLng(): Promise<Geoposition> {
+  async getMyLatLng() {
 
-    const retVal = this.geolocation.getCurrentPosition({ timeout: 3000 }).then((resp) => {
+    await this.geolocation.getCurrentPosition({ timeout: 3000 }).then((resp) => {
       console.log('Setting Current Location - Lat:' + resp.coords.latitude + 'Lat:' + resp.coords.longitude);
       this.startingLatLng = { lat: resp.coords.latitude, lng: resp.coords.longitude };
-      return resp;
+    }).catch((error) => {
+      console.log('Error getting location, defaulting to Albany: ' + JSON.stringify(error));
+      this.startingLatLng = { lat: 42.65155, lng: -73.75521 };
     });
-
-    return retVal;
   }
 
   // TODO Spherical nulls out and I cant' figure out why, using getDistanceFromLatLonInMiles for now

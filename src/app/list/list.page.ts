@@ -67,57 +67,57 @@ export class ListPage implements OnInit {
     await this.presentLoading();
 
     // First lets get your current location
-    this.filterhelper.getMyLatLng().then(() => {
+    await this.filterhelper.getMyLatLng();
 
-      this.categoryData = this.filterhelper.getCategoryData();
-      this.distanceData = this.filterhelper.getDistanceData();
 
-      this.filterhelper.getChosenCategories().then((categoriesResult) => {
-        if (!categoriesResult) {
-          this.currentCategoryValues = this.filterhelper.defaultCategoryValues;
-          this.categoryFilterCount = this.currentCategoryValues.length;
-        } else {
-          this.currentCategoryValues = categoriesResult;
-          this.categoryFilterCount = this.currentCategoryValues.length;
-        }
-      });
+    this.categoryData = this.filterhelper.getCategoryData();
+    this.distanceData = this.filterhelper.getDistanceData();
 
-      this.filterhelper.getChosenDistance().then((distanceResult) => {
-        if (!distanceResult) {
-          this.distanceFilter = 20;
-        } else {
-          this.distanceFilter = distanceResult;
-        }
-      });
+    this.filterhelper.getChosenCategories().then((categoriesResult) => {
+      if (!categoriesResult) {
+        this.currentCategoryValues = this.filterhelper.defaultCategoryValues;
+        this.categoryFilterCount = this.currentCategoryValues.length;
+      } else {
+        this.currentCategoryValues = categoriesResult;
+        this.categoryFilterCount = this.currentCategoryValues.length;
+      }
+    });
 
-      this.apiService.retrieveData().then((res) => {
+    this.filterhelper.getChosenDistance().then((distanceResult) => {
+      if (!distanceResult) {
+        this.distanceFilter = 20;
+      } else {
+        this.distanceFilter = distanceResult;
+      }
+    });
 
-        if (!res) {
-          console.log('Error retrieving fresh data!');
-          this.noSavedData = true;
-        } else {
-          console.log('Listview: Initializing data ' + res.length);
+    this.apiService.retrieveData().then((res) => {
 
-          this.masterDataList = res;
+      if (!res) {
+        console.log('Error retrieving fresh data!');
+        this.noSavedData = true;
+      } else {
+        console.log('Listview: Initializing data ' + res.length);
 
-          for (let i = 0; i < this.masterDataList.length; i++) {
-            const curItem = this.masterDataList[i];
-            this.calcDistance(curItem);
+        this.masterDataList = res;
 
-            // Infinite load means we are moving data around more
-            if (i < 25) {
-              this.dataList.push(this.masterDataList[i]);
-            }
-            this.filterData.push(this.masterDataList[i]);
+        for (let i = 0; i < this.masterDataList.length; i++) {
+          const curItem = this.masterDataList[i];
+          this.calcDistance(curItem);
+
+          // Infinite load means we are moving data around more
+          if (i < 25) {
+            this.dataList.push(this.masterDataList[i]);
           }
-
-          this.finalFilterPass();
+          this.filterData.push(this.masterDataList[i]);
         }
-      }).catch((error) => {
-        console.log('ListPage Retrieval Error: ', error);
-      }).finally(() => {
-        this.loading.dismiss();
-      });
+
+        this.finalFilterPass();
+      }
+    }).catch((error) => {
+      console.log('ListPage Retrieval Error: ', error);
+    }).finally(() => {
+      this.loading.dismiss();
     });
 
   }
