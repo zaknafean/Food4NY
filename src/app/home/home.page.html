@@ -13,7 +13,7 @@
     <ion-row>
       <ion-col size-xs="6">
         <ion-select [value]="currentCategoryValues" multiple="true" selectedText="{{categoryFilterCount}} categories"
-          (ionChange)="filterByCategory($event)" [compareWith]="compareWith">
+          (ionChange)="filterByCategory($event)">
           <ion-select-option *ngFor="let category of categoryData" [value]="category.id">
             {{category.type}}
           </ion-select-option>
@@ -22,8 +22,7 @@
 
       <ion-col size-xs="6">
         <ion-select [value]="distanceFilter" multiple="false" [interfaceOptions]="customAlertOptionsDistance"
-          selectedText="within {{distanceFilter}} miles" (ionChange)="filterByDistance($event)"
-          [selectedText]="distanceFilter">
+          selectedText="within {{distanceFilter}} miles" (ionChange)="filterByDistance($event)" value="distance.value">
           <ion-select-option *ngFor="let distance of distanceData" [value]="distance.value">
             {{distance.type}}
           </ion-select-option>

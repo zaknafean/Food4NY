@@ -9,17 +9,17 @@ const routes: Routes = [
   },
   {
     path: 'home',
-    loadChildren: './home/home.module#HomePageModule'
+    loadChildren: () => import('./home/home.module').then(m => m.HomePageModule)
   },
   {
     path: 'list',
-    loadChildren: './list/list.module#ListPageModule'
+    loadChildren: () => import('./list/list.module').then(m => m.ListPageModule)
   },
-  { path: 'modal', loadChildren: './modal/modal.module#ModalPageModule' },
-  { path: 'about', loadChildren: './about/about.module#AboutPageModule' },
-  { path: 'settings', loadChildren: './settings/settings.module#SettingsPageModule' },
-  { path: 'help', loadChildren: './help/help.module#HelpPageModule' },
-  { path: 'saved', loadChildren: './saved/saved.module#SavedPageModule' }
+  { path: 'modal', loadChildren: () => import('./modal/modal.module').then(m => m.ModalPageModule) },
+  { path: 'about', loadChildren: () => import('./about/about.module').then(m => m.AboutPageModule) },
+  { path: 'settings', loadChildren: () => import('./settings/settings.module').then(m => m.SettingsPageModule) },
+  { path: 'help', loadChildren: () => import('./help/help.module').then(m => m.HelpPageModule) },
+  { path: 'saved', loadChildren: () => import('./saved/saved.module').then(m => m.SavedPageModule) }
 ];
 
 @NgModule({

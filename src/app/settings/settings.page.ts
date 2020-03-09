@@ -10,13 +10,13 @@ import { ToastController } from '@ionic/angular';
 })
 export class SettingsPage implements OnInit {
 
-  private categoryFilter = '';
-  private distanceFilter = 20;
+  public categoryFilter = '';
+  public distanceFilter = 20;
 
-  private categoryData = [];
-  private distanceData = [];
-  private currentCategoryValues = [];
-  private categoryFilterCount: number;
+  public categoryData = [];
+  public distanceData = [];
+  public currentCategoryValues = [];
+  public categoryFilterCount: number;
 
   constructor(private filterhelper: FilterhelperService, public toastController: ToastController) { }
 

@@ -11,11 +11,11 @@ import { ActionhelperService } from '../services/actionhelper.service';
 })
 export class SavedPage implements OnInit {
 
-  noSavedData: boolean;
-  noFavoriteData: boolean;
-  loading: any;
+  public noSavedData: boolean;
+  public noFavoriteData: boolean;
+  public loading: any;
 
-  private masterDataList: any = []; // This array never changes
+  public masterDataList: any = []; // This array never changes
   public dataList: any = []; // This array is the one thats displayed
 
   constructor(private favoriteService: FavoritehelperService, private apiService: ApicallerService,
@@ -38,7 +38,7 @@ export class SavedPage implements OnInit {
         console.log('No favorites data exists!');
         this.noFavoriteData = true;
       } else {
-        console.log(favoriteResponse);
+        // console.log(favoriteResponse);
         console.log('Savedview: Initializing data ' + favoriteResponse.length);
 
         this.apiService.retrieveData().then((res) => {
@@ -80,6 +80,7 @@ export class SavedPage implements OnInit {
 
       const actionSheet = await this.actionSheetController.create({
         header: selectedItem.name,
+        mode: 'ios',
         subHeader: selectedItem.hours_of_operation,
         buttons: this.actionhelper.getActionMapping(selectedItem, favoriteResponse)
       });

@@ -36,7 +36,6 @@ export class ActionhelperService {
   getActionMapping(selectedItem, isThisaFavorite): Array<any> {
 
     const actionSheetOptions = [];
-    // console.log('BOO: ' + this.favoriteService.isFavorite(selectedItem.id));
 
     // Everything has an address
     actionSheetOptions.push({
@@ -63,7 +62,7 @@ export class ActionhelperService {
     if (!isThisaFavorite) {
       actionSheetOptions.push({
         text: 'Favorite',
-        icon: 'heart-empty',
+        icon: 'heart-outline',
         handler: () => {
           console.log('Action Item: Save');
           this.favoriteService.favoriteOrganization(selectedItem.id);
@@ -101,7 +100,7 @@ export class ActionhelperService {
     if (selectedItem.website != null && selectedItem.website !== '' && selectedItem.website !== 'N/A') {
       actionSheetOptions.push({
         text: 'Visit Website',
-        icon: 'paper',
+        icon: 'document',
         handler: () => {
           console.log('Action Item: Visit');
           this.openWithSystemBrowser(selectedItem.website);

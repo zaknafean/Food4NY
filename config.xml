@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.tearcell.food4ny" version="1.0.2" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="com.tearcell.food4ny" version="1.5.0" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>Food4NY</name>
     <description>An update and response to Food4Schy app</description>
     <author email="aweepingman@gmail.com" href="https://tearcell.com/">A weeping man</author>
@@ -50,6 +50,9 @@
     <platform name="ios">
         <allow-intent href="itms:*" />
         <allow-intent href="itms-apps:*" />
+        <edit-config file="*-Info.plist" mode="merge" target="NSLocationWhenInUseUsageDescription">
+            <string>Location used to determine distance to food banks.</string>
+        </edit-config>
         <icon height="57" src="resources/ios/icon/icon.png" width="57" />
         <icon height="114" src="resources/ios/icon/icon@2x.png" width="114" />
         <icon height="40" src="resources/ios/icon/icon-40.png" width="40" />
@@ -110,7 +113,7 @@
     <preference name="GOOGLE_MAPS_ANDROID_API_KEY" value="USE_YOUR_OWN" />
     <preference name="GOOGLE_MAPS_IOS_API_KEY" value="USE_YOUR_OWN" />
     <plugin name="cordova-plugin-geolocation" spec="4.0.1">
-        <variable name="GEOLOCATION_USAGE_DESCRIPTION" value="To locate you" />
+        <variable name="GEOLOCATION_USAGE_DESCRIPTION" value="Location used to determine distance to food banks." />
     </plugin>
     <plugin name="cordova-plugin-nativegeocoder" spec="3.2.2" />
     <engine name="browser" spec="5.0.4" />

@@ -19,7 +19,7 @@
     <ion-item>
       <ion-label>Show these categories</ion-label>
       <ion-select [value]="currentCategoryValues" multiple="true" selectedText="{{categoryFilterCount}} categories"
-        (ionChange)="updateCategoryPreferences($event)" [compareWith]="compareWith">
+        (ionChange)="updateCategoryPreferences($event)" >
         <ion-select-option *ngFor="let category of categoryData" [value]="category.id">
           {{category.type}}
         </ion-select-option>
@@ -28,7 +28,7 @@
 
     <ion-item>
       <ion-label>Search this many miles from me</ion-label>
-      <ion-select [value]="distanceFilter" multiple="false" [interfaceOptions]="customAlertOptionsDistance"
+      <ion-select [value]="distanceFilter" multiple="false" [interfaceOptions]=""
       selectedText="within {{distanceFilter}} miles" (ionChange)="updateDistancePreferences($event)"
       [selectedText]="distanceFilter">
       <ion-select-option *ngFor="let distance of distanceData" [value]="distance.value">

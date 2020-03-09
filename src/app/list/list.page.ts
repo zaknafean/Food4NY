@@ -16,21 +16,21 @@ import { FavoritehelperService } from '../services/favoritehelper.service';
 export class ListPage implements OnInit {
 
   public filterData: any = []; // This array changes constantly
-  private masterDataList: any = []; // This array never changes
+  public masterDataList: any = []; // This array never changes
   public dataList: any = []; // This array is the one thats displayed
 
-  private searchFilter = '';
-  private categoryFilter = '';
-  private distanceFilter = 20;
+  public searchFilter = '';
+  public categoryFilter = '';
+  public distanceFilter = 20;
 
   private infiniteScrollCounter = 25;
 
-  private categoryData = [];
-  private distanceData = [];
-  private currentCategoryValues = [];
-  private categoryFilterCount: number;
+  public categoryData = [];
+  public distanceData = [];
+  public currentCategoryValues = [];
+  public categoryFilterCount: number;
 
-  private categoryFilterString = '';
+  public categoryFilterString = '';
 
   public noSavedData = false;
   loading: any;
@@ -97,7 +97,7 @@ export class ListPage implements OnInit {
         console.log('Error retrieving fresh data!');
         this.noSavedData = true;
       } else {
-        console.log('Listview: Initializing data ' + res.length);
+        console.log('Listview: Initializing data ' + res.length + ' results total');
 
         this.masterDataList = res;
 
@@ -139,10 +139,10 @@ export class ListPage implements OnInit {
   }
 
   async finalFilterPass() {
-    console.log('Checking Filter: ' + this.masterDataList.length);
-    console.log('Distance Filter=' + this.distanceFilter);
-    console.log('Category Filter=' + this.categoryFilter);
-    console.log(' Search  Filter=' + this.searchFilter);
+    // console.log('Checking Filter: ' + this.masterDataList.length);
+    // console.log('Distance Filter=' + this.distanceFilter);
+    // console.log('Category Filter=' + this.categoryFilter);
+    // console.log(' Search  Filter=' + this.searchFilter);
 
     this.filterData = this.masterDataList.filter(curItem => {
       // Organization is required. This is a sanity check if it doesn't show up
@@ -178,8 +178,8 @@ export class ListPage implements OnInit {
     }
 
     // await this.loading.dismiss();
-    console.log('sync complete=Total:' + this.filterData.length + ' ->' + this.dataList.length);
-    console.log('Local Arrays filtered by search. Count: ' + this.filterData.length);
+    // console.log('sync complete=Total:' + this.filterData.length + ' -> ' + this.dataList.length);
+    console.log('Local Arrays filtered. Count: ' + this.filterData.length);
   }
 
   filterBySearchBar(evt?) {
@@ -196,7 +196,7 @@ export class ListPage implements OnInit {
     if (evt) {
       this.categoryFilterCount = evt.srcElement.value.length;
       this.categoryFilter = (evt.srcElement.value).toString().toLowerCase();
-
+      this.categoryFilterString = '';
       const categoryArray = this.categoryFilter.split(',');
 
       for (const curCategory of this.categoryData) {
@@ -212,7 +212,7 @@ export class ListPage implements OnInit {
 
     if (evt) {
       this.distanceFilter = Number(evt.srcElement.value);
-      console.log(this.distanceFilter + ' has changed distance filter value');
+      // console.log(this.distanceFilter + ' has changed distance filter value');
     }
 
     this.finalFilterPass();
@@ -229,6 +229,7 @@ export class ListPage implements OnInit {
 
       const actionSheet = await this.actionSheetController.create({
         header: selectedItem.name,
+        mode: 'ios',
         subHeader: selectedItem.hours_of_operation,
         buttons: this.actionhelper.getActionMapping(selectedItem, favoriteResponse)
       });

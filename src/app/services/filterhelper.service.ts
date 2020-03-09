@@ -3,7 +3,6 @@ import { ILatLng, Spherical } from '@ionic-native/google-maps/ngx';
 import { Geolocation, Geoposition } from '@ionic-native/geolocation/ngx';
 import { NativeGeocoder } from '@ionic-native/native-geocoder/ngx';
 import { Storage } from '@ionic/storage';
-import { ApicallerService } from './apicaller.service';
 
 
 const PREF_DISTANCE_KEY = 'distancePref';
@@ -162,7 +161,7 @@ export class FilterhelperService {
       {
         check: false,
         type: 'Show All',
-        value: 5000
+        value: 9999
       },
       {
         check: false,
@@ -205,7 +204,7 @@ export class FilterhelperService {
 
   async getMyLatLng() {
 
-    await this.geolocation.getCurrentPosition({ timeout: 3000 }).then((resp) => {
+    await this.geolocation.getCurrentPosition({ timeout: 10000 }).then((resp) => {
       console.log('Setting Current Location - Lat:' + resp.coords.latitude + 'Lat:' + resp.coords.longitude);
       this.startingLatLng = { lat: resp.coords.latitude, lng: resp.coords.longitude };
     }).catch((error) => {

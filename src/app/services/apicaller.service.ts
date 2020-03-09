@@ -32,10 +32,10 @@ export class ApicallerService {
   async retrieveData(): Promise<any> {
     console.log('Calling retrieveData in apicaller.service');
     const forceRefresh = await this.isRefreshTime();
-    console.log('ForceRefresh? ' + forceRefresh);
+    console.log('ForceRefresh time? ' + forceRefresh);
 
     // See if we have local data first
-    const results = await this.getLocalData('moo').then(async (respose) => {
+    const results = await this.getLocalData().then(async (respose) => {
       // Case 1: No fresh data
       if (respose === null || forceRefresh) {
         console.log('Retrieving new data from: ' + API_URL);
@@ -63,7 +63,7 @@ export class ApicallerService {
 
       } else {
         // Case 2: Local Data
-        console.log('Found data, no need to get fresh data: ');
+        console.log('Found data! No need to retrieve fresh data');
         return respose;
       }
 
@@ -120,7 +120,7 @@ export class ApicallerService {
   }
 
   // Get existing data
-  public getLocalData(key: string): Promise<any> {
+  public getLocalData(): Promise<any> {
     console.log('Calling getLocalData in apicaller.service');
 
     return this.storage.get(API_STORAGE_KEY).then((storageResponse) => {

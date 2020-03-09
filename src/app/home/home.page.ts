@@ -36,23 +36,23 @@ export class HomePage implements OnInit {
 
   map: GoogleMap;
 
-  private masterDataList: any = [];  // This array never changes
-  private filterData: any = []; // This array is the one thats displayed
+  public masterDataList: any = [];  // This array never changes
+  public filterData: any = []; // This array is the one thats displayed
 
-  private searchFilter = '';
-  private categoryFilter = '';
-  private categoryFilterString = '';
-  private distanceFilter = 20;
+  public searchFilter = '';
+  public categoryFilter = '';
+  public categoryFilterString = '';
+  public distanceFilter = 20;
 
   zone: NgZone;
 
-  private categoryData = [];
-  private distanceData = [];
-  private currentCategoryValues = [];
-  private categoryFilterCount: number;
+  public categoryData = [];
+  public distanceData = [];
+  public currentCategoryValues = [];
+  public categoryFilterCount: number;
 
   public noSavedData = false;
-  loading: any;
+  public loading: any;
 
   customAlertOptionsCat: any = {
     header: 'Categories',
@@ -94,10 +94,9 @@ export class HomePage implements OnInit {
     // First lets get your current location
     await this.filterhelper.getMyLatLng();
 
-    //.then((resp) => {
-    // console.log('Got Lat/LNG...');
     this.categoryData = this.filterhelper.getCategoryData();
     this.distanceData = this.filterhelper.getDistanceData();
+
 
     this.filterhelper.getChosenCategories().then((categoriesResult) => {
       if (!categoriesResult) {
@@ -163,7 +162,8 @@ export class HomePage implements OnInit {
   finalFilterPass() {
     // console.log('Checking Filter: ' + this.masterDataList.length);
     // console.log('Distance Filter=' + this.distanceFilter);
-    // console.log('Category Filter=' + this.categoryFilter);
+    // console.log('Category Filter1=' + this.categoryFilter);
+    // console.log('Category Filter2=' + this.categoryFilterString);
     // console.log('Search Filter=' + this.searchFilter);
 
     this.filterData = this.masterDataList.filter(curItem => {
@@ -207,7 +207,7 @@ export class HomePage implements OnInit {
     if (evt) {
       this.categoryFilterCount = evt.srcElement.value.length;
       this.categoryFilter = (evt.srcElement.value).toString().toLowerCase();
-
+      this.categoryFilterString = '';
       const categoryArray = this.categoryFilter.split(',');
 
       for (const curCategory of this.categoryData) {
@@ -254,6 +254,7 @@ export class HomePage implements OnInit {
     };
 
     this.map = GoogleMaps.create('map_canvas', mapOptions);
+
     this.map.on(GoogleMapsEvent.MAP_READY).subscribe(
       (data) => {
         console.log('Map Ready');
@@ -261,6 +262,12 @@ export class HomePage implements OnInit {
       }
     );
 
+    this.map.on(GoogleMapsEvent.MY_LOCATION_BUTTON_CLICK).subscribe(
+      (data) => {
+        console.log('My Location Clicked');
+        // this.populateMapMakers();
+      }
+    );
   }
 
   async populateMapMakers() {
@@ -286,17 +293,48 @@ export class HomePage implements OnInit {
 
       if (curLocation.subcategory.name.toLowerCase() === 'food pantry') {
         myIcon = 'blue';
-      } else if (curLocation.subcategory.name.toLowerCase() === 'Community Meals') {
+      } else if (curLocation.subcategory.name.toLowerCase() === 'children and youth program') {
         myIcon = 'orange';
-      } else if (curLocation.subcategory.name.toLowerCase() === 'SNAP') {
+      } else if (curLocation.subcategory.name.toLowerCase() === 'community meal/soup kitchen') {
         myIcon = 'yellow';
-      } else if (curLocation.subcategory.name.toLowerCase() === 'Medical Assistance') {
+      } else if (curLocation.subcategory.name.toLowerCase() === 'coalition member') {
         myIcon = 'cyan';
-      } else if (curLocation.subcategory.name.toLowerCase() === 'Veggie Mobile') {
+      } else if (curLocation.subcategory.name.toLowerCase() === 'holiday meal') {
         myIcon = 'green';
-      } else if (curLocation.subcategory.name.toLowerCase() === 'Misc') {
+      } else if (curLocation.subcategory.name.toLowerCase() === 'child care') {
+        myIcon = 'magenta';
+      } else if (curLocation.subcategory.name.toLowerCase() === 'clothing') {
+        myIcon = 'magenta';
+      } else if (curLocation.subcategory.name.toLowerCase() === 'disability services') {
+        myIcon = 'magenta';
+      } else if (curLocation.subcategory.name.toLowerCase() === 'emergency housing') {
+        myIcon = 'magenta';
+      } else if (curLocation.subcategory.name.toLowerCase() === 'family support') {
+        myIcon = 'magenta';
+      } else if (curLocation.subcategory.name.toLowerCase() === 'furniture') {
+        myIcon = 'magenta';
+      } else if (curLocation.subcategory.name.toLowerCase() === 'legal aid') {
+        myIcon = 'magenta';
+      } else if (curLocation.subcategory.name.toLowerCase() === 'self help & support') {
+        myIcon = 'magenta';
+      } else if (curLocation.subcategory.name.toLowerCase() === 'social services') {
+        myIcon = 'magenta';
+      } else if (curLocation.subcategory.name.toLowerCase() === 'medical assistance') {
+        myIcon = 'magenta';
+      } else if (curLocation.subcategory.name.toLowerCase() === 'senior center/meal service') {
+        myIcon = 'magenta';
+      } else if (curLocation.subcategory.name.toLowerCase() === 'senior services') {
+        myIcon = 'magenta';
+      } else if (curLocation.subcategory.name.toLowerCase() === 'veggie mobile sprout®') {
+        myIcon = 'magenta';
+      } else if (curLocation.subcategory.name.toLowerCase() === 'veggie mobile') {
+        myIcon = 'magenta';
+      } else if (curLocation.subcategory.name.toLowerCase() === 'snap (food stamp) registration assistance') {
+        myIcon = 'magenta';
+      } else if (curLocation.subcategory.name.toLowerCase() === 'wic office/sign up locations') {
         myIcon = 'magenta';
       }
+
 
       // add a marker
       const marker: Marker = this.map.addMarkerSync({
@@ -350,6 +388,7 @@ export class HomePage implements OnInit {
       });
 
     }
+
     await this.loading.dismiss();
   }
 
