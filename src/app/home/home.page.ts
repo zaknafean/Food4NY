@@ -98,49 +98,46 @@ export class HomePage implements OnInit {
     this.distanceData = this.filterhelper.getDistanceData();
 
 
-    this.filterhelper.getChosenCategories().then((categoriesResult) => {
-      if (!categoriesResult) {
-        this.currentCategoryValues = this.filterhelper.defaultCategoryValues;
-        this.categoryFilterCount = this.currentCategoryValues.length;
-      } else {
-        this.currentCategoryValues = categoriesResult;
-        this.categoryFilterCount = this.currentCategoryValues.length;
+    const categoriesResult = await this.filterhelper.getChosenCategories();
+
+    if (!categoriesResult) {
+      this.currentCategoryValues = this.filterhelper.defaultCategoryValues;
+      this.categoryFilterCount = this.currentCategoryValues.length;
+    } else {
+      this.currentCategoryValues = categoriesResult;
+      this.categoryFilterCount = this.currentCategoryValues.length;
+    }
+
+
+    const distanceResult = await this.filterhelper.getChosenDistance();
+
+    if (!distanceResult) {
+      this.distanceFilter = 20;
+    } else {
+      this.distanceFilter = distanceResult;
+    }
+
+    const res = await this.apiService.retrieveData();
+
+    if (!res) {
+      console.log('Error retrieving fresh data!');
+      this.noSavedData = true;
+    } else {
+      console.log('Homeview: Initializing data ' + res.length);
+
+      this.masterDataList = res;
+
+      // tslint:disable-next-line:prefer-for-of
+      for (let i = 0; i < this.masterDataList.length; i++) {
+        const curItem = this.masterDataList[i];
+        this.calcDistance(curItem);
       }
-    });
 
-    this.filterhelper.getChosenDistance().then((distanceResult) => {
-      if (!distanceResult) {
-        this.distanceFilter = 20;
-      } else {
-        this.distanceFilter = distanceResult;
-      }
-    });
+      this.finalFilterPass();
+      this.loadMap();
+    }
 
-    this.apiService.retrieveData().then((res) => {
-
-      if (!res) {
-        console.log('Error retrieving fresh data!');
-        this.noSavedData = true;
-      } else {
-        console.log('Homeview: Initializing data ' + res.length);
-
-        this.masterDataList = res;
-
-        // tslint:disable-next-line:prefer-for-of
-        for (let i = 0; i < this.masterDataList.length; i++) {
-          const curItem = this.masterDataList[i];
-          this.calcDistance(curItem);
-        }
-
-        this.finalFilterPass();
-        this.loadMap();
-      }
-    }).catch((error) => {
-      console.log('HomePage Retrieval Error: ', error);
-    }).finally(() => {
-      this.loading.dismiss();
-    });
-
+    this.loading.dismiss();
   }
 
   async presentLoading() {
@@ -170,7 +167,6 @@ export class HomePage implements OnInit {
       // Organization is required. This is a sanity check if it doesn't show up
       if (curItem.name) {
 
-        // console.log('2' + curItem.distance);
         if (curItem.distance && curItem.distance < this.distanceFilter) {
 
           const jsonString = JSON.stringify(curItem).toLowerCase();
@@ -399,18 +395,15 @@ export class HomePage implements OnInit {
       console.log('Error: No item selected to show options for');
       return;
     }
-    this.favoriteService.isFavorite(selectedItem.id).then(async (favoriteResponse) => {
+    const favoriteResponse = await this.favoriteService.isFavorite(selectedItem.id);
 
-      const actionSheet = await this.actionSheetController.create({
-        header: selectedItem.name,
-        subHeader: selectedItem.hours_of_operation,
-        buttons: this.actionhelper.getActionMapping(selectedItem, favoriteResponse)
-      });
-
-      await actionSheet.present();
-
+    const actionSheet = await this.actionSheetController.create({
+      header: selectedItem.name,
+      subHeader: selectedItem.hours_of_operation,
+      buttons: this.actionhelper.getActionMapping(selectedItem, favoriteResponse)
     });
 
+    await actionSheet.present();
   }
 
 }
