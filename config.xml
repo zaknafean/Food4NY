@@ -3,7 +3,7 @@
     <name>Food4NY</name>
     <description>An update and response to Food4Schy app</description>
     <author email="aweepingman@gmail.com" href="https://tearcell.com/">A weeping man</author>
-    <content src="index.html" />
+    <content original-src="index.html" src="http://localhost:8100" />
     <access origin="*" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
@@ -117,4 +117,5 @@
     </plugin>
     <plugin name="cordova-plugin-nativegeocoder" spec="3.2.2" />
     <engine name="browser" spec="5.0.4" />
+    <allow-navigation href="http://localhost:8100" sessionid="7c324e25" />
 </widget>

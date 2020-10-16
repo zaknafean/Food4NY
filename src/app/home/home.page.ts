@@ -53,10 +53,12 @@ export class HomePage implements OnInit {
 
   public noSavedData = false;
   public loading: any;
+  public amOnline = true;
 
   customAlertOptionsCat: any = {
     header: 'Categories',
     subHeader: 'Select categories to view',
+    cssClass: 'ion-select-cats',
     translucent: true
   };
 
@@ -66,11 +68,12 @@ export class HomePage implements OnInit {
     translucent: true
   };
 
-  constructor(private platform: Platform, private apiService: ApicallerService, private actionhelper: ActionhelperService,
-    // tslint:disable-next-line:align
-    public modalController: ModalController, public actionSheetController: ActionSheetController, private favoriteService: FavoritehelperService,
-    // tslint:disable-next-line:align
-    private filterhelper: FilterhelperService, private network: Network, public loadingController: LoadingController) {
+  constructor(
+    private platform: Platform, private apiService: ApicallerService, private actionhelper: ActionhelperService,
+    public modalController: ModalController, public actionSheetController: ActionSheetController,
+    private favoriteService: FavoritehelperService, private filterhelper: FilterhelperService,
+    private network: Network, public loadingController: LoadingController
+  ) {
 
     // https://ionicallyspeaking.com/2017/01/17/ionic-2-ui-not-updating-after-change-to-model/
     this.zone = new NgZone({ enableLongStackTrace: false });
@@ -79,6 +82,17 @@ export class HomePage implements OnInit {
   ngOnInit() {
     const disconnectSubscription = this.network.onDisconnect().subscribe(() => {
       console.log('network was disconnected :-(');
+      this.amOnline = false;
+    });
+
+    const connectSubscription = this.network.onConnect().subscribe(() => {
+      console.log('network connected!');
+      // We just got a connection but we need to wait briefly
+      // before we determine the connection type. Might need to wait.
+      // prior to doing any api requests as well.
+      setTimeout(() => {
+        this.amOnline = true;
+      }, 3000);
     });
 
     // Ensure device is ready to do stuff
@@ -94,7 +108,13 @@ export class HomePage implements OnInit {
     // First lets get your current location
     await this.filterhelper.getMyLatLng();
 
-    this.categoryData = this.filterhelper.getCategoryData();
+    this.categoryData = await this.apiService.getFreshCategoryData();
+    if (this.categoryData == null || this.categoryData === undefined || !this.amOnline) {
+      this.categoryData = this.filterhelper.getCategoryData();
+    } else {
+      this.filterhelper.setCategoryData(this.categoryData);
+    }
+
     this.distanceData = this.filterhelper.getDistanceData();
 
 
@@ -116,27 +136,20 @@ export class HomePage implements OnInit {
       }
     });
 
-    this.apiService.retrieveData().then((res) => {
+    this.apiService.retrieveData(this.amOnline).then((res) => {
 
       if (!res) {
-        console.log('Error retrieving fresh data!');
         this.noSavedData = true;
       } else {
-        console.log('Homeview: Initializing data ' + res.length);
-
+        this.noSavedData = false;
         this.masterDataList = res;
-
-        // tslint:disable-next-line:prefer-for-of
-        for (let i = 0; i < this.masterDataList.length; i++) {
-          const curItem = this.masterDataList[i];
-          this.calcDistance(curItem);
-        }
 
         this.finalFilterPass();
         this.loadMap();
       }
     }).catch((error) => {
-      console.log('HomePage Retrieval Error: ', error);
+      // console.log('HomePage Retrieval Error: ', error);
+      this.noSavedData = true;
     }).finally(() => {
       this.loading.dismiss();
     });
@@ -152,25 +165,12 @@ export class HomePage implements OnInit {
     await this.loading.present();
   }
 
-  calcDistance(item) {
-    const returnValue = this.filterhelper.getDistanceFromLatLonInMiles(item.lat, item.lng);
-    item.distance = returnValue.toFixed(2);
-
-    return returnValue.toFixed(2);
-  }
-
   finalFilterPass() {
-    // console.log('Checking Filter: ' + this.masterDataList.length);
-    // console.log('Distance Filter=' + this.distanceFilter);
-    // console.log('Category Filter1=' + this.categoryFilter);
-    // console.log('Category Filter2=' + this.categoryFilterString);
-    // console.log('Search Filter=' + this.searchFilter);
 
     this.filterData = this.masterDataList.filter(curItem => {
       // Organization is required. This is a sanity check if it doesn't show up
       if (curItem.name) {
 
-        // console.log('2' + curItem.distance);
         if (curItem.distance && curItem.distance < this.distanceFilter) {
 
           const jsonString = JSON.stringify(curItem).toLowerCase();
@@ -188,7 +188,7 @@ export class HomePage implements OnInit {
       }
     });
 
-    console.log('Local Arrays filtered. Final Count: ' + this.filterData.length);
+    // console.log('Local Arrays filtered. Final Count: ' + this.filterData.length);
 
     this.populateMapMakers();
   }
@@ -273,7 +273,7 @@ export class HomePage implements OnInit {
   async populateMapMakers() {
     if (this.map == null) {
       console.log('Map not ready yet!');
-      await this.loading.dismiss();
+      // await this.loading.dismiss();
       return;
     }
 
@@ -347,7 +347,7 @@ export class HomePage implements OnInit {
       });
 
 
-      this.map.getMyLocation()
+      this.map.getMyLocation();
 
       // show the infoWindow, this causes the last loaded marker to become the starting point
       // marker.showInfoWindow();
@@ -393,17 +393,17 @@ export class HomePage implements OnInit {
   }
 
   async presentActionSheet(selectedItem) {
-    // console.log('ActionSheet: ' + selectedItem.name);
 
     if (selectedItem == null) {
-      console.log('Error: No item selected to show options for');
       return;
     }
     this.favoriteService.isFavorite(selectedItem.id).then(async (favoriteResponse) => {
 
       const actionSheet = await this.actionSheetController.create({
         header: selectedItem.name,
+        mode: 'ios',
         subHeader: selectedItem.hours_of_operation,
+        cssClass: 'list-action-sheet',
         buttons: this.actionhelper.getActionMapping(selectedItem, favoriteResponse)
       });
 

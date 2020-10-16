@@ -7,6 +7,7 @@ import { Storage } from '@ionic/storage';
 
 const PREF_DISTANCE_KEY = 'distancePref';
 const PREF_CATEGORY_KEY = 'categoryPref';
+const PREF_CATEGORY_DATA_KEY = 'categoryData';
 
 @Injectable({
   providedIn: 'root'
@@ -18,10 +19,10 @@ export class FilterhelperService {
   distanceChoices = [];
   startingLatLng: ILatLng = { lat: 42.65155, lng: -73.75521 };
 
-  public defaultCategoryValues = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22];
+  public defaultCategoryValues = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24];
 
-  constructor(private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder, public storage: Storage, ) {
-
+  constructor(private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder, public storage: Storage,) {
+    // TODO get data dynamically
     this.categoryData = [
       {
         id: 1,
@@ -38,14 +39,14 @@ export class FilterhelperService {
       {
         id: 3,
         check: true,
-        type: 'Coalition Member',
-        value: 'Coalition Member'
+        type: 'Food Pantries for the Capital District',
+        value: 'Food Pantries for the Capital District'
       },
       {
         id: 4,
         check: true,
-        type: 'Food Pantry',
-        value: 'Food Pantry'
+        type: 'All Other - Capital District Food Pantries',
+        value: 'All Other - Capital District Food Pantries'
       },
       {
         id: 5,
@@ -154,6 +155,18 @@ export class FilterhelperService {
         check: true,
         type: 'WIC Office/Sign Up Locations',
         value: 'WIC Office/Sign Up Locations'
+      },
+      {
+        id: 23,
+        check: true,
+        type: 'Pet Food Pantry',
+        value: 'Pet Food Pantry'
+      },
+      {
+        id: 24,
+        check: true,
+        type: 'All Other - NYS Food Pantries',
+        value: 'All Other - NYS Food Pantries'
       }
     ];
 
@@ -249,6 +262,10 @@ export class FilterhelperService {
 
   getCategoryData(): Array<any> {
     return this.categoryData;
+  }
+
+  setCategoryData(categoryData: any) {
+    this.categoryData = categoryData;
   }
 
   getDistanceData(): Array<any> {
