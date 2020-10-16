@@ -13,12 +13,13 @@
     <ion-row>
       <ion-col size-xs="6">
         <ion-select [value]="currentCategoryValues" multiple="true" selectedText="{{categoryFilterCount}} categories"
-          (ionChange)="filterByCategory($event)">
+          (ionChange)="filterByCategory($event)" [interfaceOptions]="customAlertOptionsCat">
           <ion-select-option *ngFor="let category of categoryData" [value]="category.id">
             {{category.type}}
           </ion-select-option>
-        </ion-select>
+        </ion-select> 
       </ion-col>
+      
 
       <ion-col size-xs="6">
         <ion-select [value]="distanceFilter" multiple="false" [interfaceOptions]="customAlertOptionsDistance"
@@ -42,11 +43,12 @@
       <ion-card class="ion-text-wrap">
         <ion-card-header color="danger">Can not retrieve data</ion-card-header>
         <ion-card-content>
-          <h2>You are offline, and no saved data can be found. Please reconnect to the internet and refresh to see
+          <h2>You are offline, and no saved data can be found. Please reconnect to the internet and click the reconnect button to see
             the map</h2>
+            <ion-button expand='full' (click)="presentInformation()">Click to retry connection</ion-button>
         </ion-card-content>
       </ion-card>
-    </ion-item>
+    </ion-item> 
   </ion-list>
 
   <div *ngIf="this.noSavedData === false" id="map_canvas"></div>

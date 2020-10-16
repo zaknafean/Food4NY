@@ -99,7 +99,9 @@
         "API_KEY_FOR_ANDROID": "USE_YOUR_OWN",
         "API_KEY_FOR_IOS": "USE_YOUR_OWN",
         "LOCATION_WHEN_IN_USE_DESCRIPTION": "Show your location on the map",
-        "LOCATION_ALWAYS_USAGE_DESCRIPTION": "Trace your location on the map"
+        "LOCATION_ALWAYS_USAGE_DESCRIPTION": "Trace your location on the map",
+        "PLAY_SERVICES_VERSION": "15.0.1",
+        "ANDROID_SUPPORT_V4_VERSION": "27.+"
       },
       "cordova-plugin-geolocation": {
         "GEOLOCATION_USAGE_DESCRIPTION": "To locate you"
@@ -118,7 +120,9 @@
       "cordova-plugin-ionic-webview": {
         "ANDROID_SUPPORT_ANNOTATIONS_VERSION": "27.+"
       },
-      "cordova-plugin-advanced-http": {},
+      "cordova-plugin-advanced-http": {
+        "OKHTTP_VERSION": "3.10.0"
+      },
       "cordova-plugin-network-information": {},
       "call-number": {},
       "cordova-plugin-inappbrowser": {}

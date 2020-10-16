@@ -33,7 +33,8 @@ export class ListPage implements OnInit {
   public categoryFilterString = '';
 
   public noSavedData = false;
-  loading: any;
+  public loading: any;
+  public amOnline = true;
 
   customAlertOptionsCat: any = {
     header: 'Categories',
@@ -57,7 +58,16 @@ export class ListPage implements OnInit {
 
   ngOnInit() {
     const disconnectSubscription = this.network.onDisconnect().subscribe(() => {
-      console.log('network was disconnected :-(');
+      this.amOnline = false;
+    });
+
+    const connectSubscription = this.network.onConnect().subscribe(() => {
+      // We just got a connection but we need to wait briefly
+      // before we determine the connection type. Might need to wait.
+      // prior to doing any api requests as well.
+      setTimeout(() => {
+        this.amOnline = true;
+      }, 3000);
     });
 
     this.presentInformation();
@@ -91,19 +101,20 @@ export class ListPage implements OnInit {
       }
     });
 
-    this.apiService.retrieveData().then((res) => {
+    this.apiService.retrieveData(this.amOnline).then((res) => {
 
       if (!res) {
-        console.log('Error retrieving fresh data!');
+        // console.log('Error retrieving fresh data!');
         this.noSavedData = true;
       } else {
-        console.log('Listview: Initializing data ' + res.length + ' results total');
+        this.noSavedData = false;
+        // console.log('Listview: Initializing data ' + res.length + ' results total');
 
         this.masterDataList = res;
 
         for (let i = 0; i < this.masterDataList.length; i++) {
           const curItem = this.masterDataList[i];
-          this.calcDistance(curItem);
+          // this.calcDistance(curItem);
 
           // Infinite load means we are moving data around more
           if (i < 25) {
@@ -116,6 +127,7 @@ export class ListPage implements OnInit {
       }
     }).catch((error) => {
       console.log('ListPage Retrieval Error: ', error);
+      this.noSavedData = true;
     }).finally(() => {
       this.loading.dismiss();
     });
@@ -131,18 +143,7 @@ export class ListPage implements OnInit {
     await this.loading.present();
   }
 
-  calcDistance(item) {
-    const returnValue = this.filterhelper.getDistanceFromLatLonInMiles(item.lat, item.lng);
-    item.distance = returnValue.toFixed(2);
-
-    return returnValue.toFixed(2);
-  }
-
   async finalFilterPass() {
-    // console.log('Checking Filter: ' + this.masterDataList.length);
-    // console.log('Distance Filter=' + this.distanceFilter);
-    // console.log('Category Filter=' + this.categoryFilter);
-    // console.log(' Search  Filter=' + this.searchFilter);
 
     this.filterData = this.masterDataList.filter(curItem => {
       // Organization is required. This is a sanity check if it doesn't show up
@@ -201,7 +202,6 @@ export class ListPage implements OnInit {
 
       for (const curCategory of this.categoryData) {
         if (categoryArray.includes(curCategory.id.toString())) {
-          // console.log('Found Category: ' + curCategory.type);
           this.categoryFilterString = this.categoryFilterString + ',' + curCategory.value.toLowerCase();
         }
       }
@@ -212,17 +212,14 @@ export class ListPage implements OnInit {
 
     if (evt) {
       this.distanceFilter = Number(evt.srcElement.value);
-      // console.log(this.distanceFilter + ' has changed distance filter value');
     }
 
     this.finalFilterPass();
   }
 
   async presentActionSheet(selectedItem) {
-    console.log('ActionSheet: ' + selectedItem.name);
 
     if (selectedItem == null) {
-      console.log('Error: No item selected to show options for');
       return;
     }
     this.favoriteService.isFavorite(selectedItem.id).then(async (favoriteResponse) => {
@@ -230,6 +227,7 @@ export class ListPage implements OnInit {
       const actionSheet = await this.actionSheetController.create({
         header: selectedItem.name,
         mode: 'ios',
+        cssClass: 'list-action-sheet',
         subHeader: selectedItem.hours_of_operation,
         buttons: this.actionhelper.getActionMapping(selectedItem, favoriteResponse)
       });
@@ -259,11 +257,9 @@ export class ListPage implements OnInit {
   }
 
   doRefresh(event) {
-    console.log('Begin async operation');
 
     setTimeout(() => {
       this.presentInformation();
-      console.log('Async operation has ended');
       event.target.complete();
     }, 2000);
   }

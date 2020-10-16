@@ -3,6 +3,7 @@ import { FavoritehelperService } from '../services/favoritehelper.service';
 import { ApicallerService } from '../services/apicaller.service';
 import { LoadingController, ActionSheetController } from '@ionic/angular';
 import { ActionhelperService } from '../services/actionhelper.service';
+import { Network } from '@ionic-native/network/ngx';
 
 @Component({
   selector: 'app-saved',
@@ -14,17 +15,31 @@ export class SavedPage implements OnInit {
   public noSavedData: boolean;
   public noFavoriteData: boolean;
   public loading: any;
+  public amOnline = true;
 
   public masterDataList: any = []; // This array never changes
   public dataList: any = []; // This array is the one thats displayed
 
-  constructor(private favoriteService: FavoritehelperService, private apiService: ApicallerService,
-    // tslint:disable-next-line:align
+  constructor(
+    private favoriteService: FavoritehelperService, private apiService: ApicallerService,
     private actionhelper: ActionhelperService, public actionSheetController: ActionSheetController,
-    // tslint:disable-next-line:align
-    public loadingController: LoadingController) { }
+    public loadingController: LoadingController, private network: Network
+  ) { }
 
   ngOnInit() {
+    const disconnectSubscription = this.network.onDisconnect().subscribe(() => {
+      this.amOnline = false;
+    });
+
+    const connectSubscription = this.network.onConnect().subscribe(() => {
+      // We just got a connection but we need to wait briefly
+      // before we determine the connection type. Might need to wait.
+      // prior to doing any api requests as well.
+      setTimeout(() => {
+        this.amOnline = true;
+      }, 3000);
+    });
+
     this.presentInformation();
   }
 
@@ -35,23 +50,18 @@ export class SavedPage implements OnInit {
     this.favoriteService.getAllFavorites().then((favoriteResponse) => {
 
       if (!favoriteResponse) {
-        console.log('No favorites data exists!');
         this.noFavoriteData = true;
       } else {
-        // console.log(favoriteResponse);
-        console.log('Savedview: Initializing data ' + favoriteResponse.length);
 
-        this.apiService.retrieveData().then((res) => {
+        this.apiService.retrieveData(this.amOnline).then((res) => {
 
           if (!res) {
-            console.log('Error retrieving fresh data!');
             this.noSavedData = true;
           } else {
 
-            console.log('Savedview: Initializing data ' + res.length);
-
             this.masterDataList = res;
 
+            // tslint:disable-next-line:prefer-for-of
             for (let i = 0; i < this.masterDataList.length; i++) {
               const curItem = this.masterDataList[i];
 
@@ -70,10 +80,8 @@ export class SavedPage implements OnInit {
   }
 
   async presentActionSheet(selectedItem) {
-    console.log('ActionSheet: ' + selectedItem.name);
 
     if (selectedItem == null) {
-      console.log('Error: No item selected to show options for');
       return;
     }
     this.favoriteService.isFavorite(selectedItem.id).then(async (favoriteResponse) => {
@@ -81,6 +89,7 @@ export class SavedPage implements OnInit {
       const actionSheet = await this.actionSheetController.create({
         header: selectedItem.name,
         mode: 'ios',
+        cssClass: 'list-action-sheet',
         subHeader: selectedItem.hours_of_operation,
         buttons: this.actionhelper.getActionMapping(selectedItem, favoriteResponse)
       });
@@ -101,11 +110,9 @@ export class SavedPage implements OnInit {
   }
 
   doRefresh(event) {
-    console.log('Begin async operation');
 
     setTimeout(() => {
       this.presentInformation();
-      console.log('Async operation has ended');
       event.target.complete();
     }, 2000);
   }
