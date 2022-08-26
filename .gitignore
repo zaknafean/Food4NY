@@ -8,6 +8,7 @@
 *.apk
 *.tmp.*
 *.keystore
+.angular/
 log.txt
 *.sublime-project
 *.sublime-workspace

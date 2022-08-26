@@ -2,11 +2,16 @@ import { TestBed } from '@angular/core/testing';
 
 import { ApicallerService } from './apicaller.service';
 
+
 describe('ApicallerService', () => {
-  beforeEach(() => TestBed.configureTestingModule({}));
+  let service: ApicallerService;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({});
+    service = TestBed.inject(ApicallerService);
+  });
 
   it('should be created', () => {
-    const service: ApicallerService = TestBed.get(ApicallerService);
     expect(service).toBeTruthy();
   });
 });

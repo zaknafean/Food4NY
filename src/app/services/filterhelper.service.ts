@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
-import { ILatLng, Spherical } from '@ionic-native/google-maps/ngx';
-import { Geolocation, Geoposition } from '@ionic-native/geolocation/ngx';
-import { NativeGeocoder } from '@ionic-native/native-geocoder/ngx';
-import { Storage } from '@ionic/storage';
+//import { ILatLng, Spherical } from '@ionic-native/google-maps/ngx';
+//import { GoogleMap,  } from '@capacitor/google-maps';
+import { Geolocation } from '@capacitor/geolocation';
+//import { NativeGeocoder, NativeGeocoderResult, NativeGeocoderOptions } from '@awesome-cordova-plugins/native-geocoder/ngx';
+import { Storage } from '@ionic/storage-angular';
 
 
 const PREF_DISTANCE_KEY = 'distancePref';
@@ -17,11 +18,12 @@ export class FilterhelperService {
 
   categoryData = [];
   distanceChoices = [];
-  startingLatLng: ILatLng = { lat: 42.65155, lng: -73.75521 };
+  startingLatLng = { lat: 42.65155, lng: -73.75521 };
 
   public defaultCategoryValues = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24];
 
-  constructor(private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder, public storage: Storage,) {
+  //constructor(private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder, public storage: Storage,) {
+  constructor(public storage: Storage) {
     // TODO get data dynamically
     this.categoryData = [
       {
@@ -147,8 +149,8 @@ export class FilterhelperService {
       {
         id: 21,
         check: true,
-        type: 'SNAP (food stamp) Registration Assistance',
-        value: 'SNAP (food stamp) Registration Assistance'
+        type: 'SNAP Registration Assistance',
+        value: 'SNAP Registration Assistance'
       },
       {
         id: 22,
@@ -217,7 +219,7 @@ export class FilterhelperService {
 
   async getMyLatLng() {
 
-    await this.geolocation.getCurrentPosition({ timeout: 10000 }).then((resp) => {
+    const coordinates = await Geolocation.getCurrentPosition().then((resp) => {
       console.log('Setting Current Location - Lat:' + resp.coords.latitude + 'Lat:' + resp.coords.longitude);
       this.startingLatLng = { lat: resp.coords.latitude, lng: resp.coords.longitude };
     }).catch((error) => {
@@ -226,17 +228,6 @@ export class FilterhelperService {
     });
   }
 
-  // TODO Spherical nulls out and I cant' figure out why, using getDistanceFromLatLonInMiles for now
-  computeDistance(markerLat, markerLng) {
-    if (this.startingLatLng) {
-      const destinationCoord: ILatLng = { lat: markerLat, lng: markerLng };
-      const distanceInMeters = Spherical.computeDistanceBetween(this.startingLatLng, destinationCoord);
-      return (distanceInMeters * 0.000621371192);
-    } else {
-      console.log('Error: Location unknown');
-      return 'Error';
-    }
-  }
 
   getDistanceFromLatLonInMiles(markerLat, markerLng) {
 

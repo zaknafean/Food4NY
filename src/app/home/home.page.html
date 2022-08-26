@@ -36,7 +36,7 @@
   </ion-grid>
 </ion-header>
 
-<ion-content>
+<ion-content >
 
   <ion-list *ngIf="this.noSavedData === true">
     <ion-item>
@@ -51,6 +51,8 @@
     </ion-item> 
   </ion-list>
 
-  <div *ngIf="this.noSavedData === false" id="map_canvas"></div>
+  
+  		<capacitor-google-maps *ngIf="this.noSavedData === false" id="mapRef" #mapRef></capacitor-google-maps>
+	
 
 </ion-content>

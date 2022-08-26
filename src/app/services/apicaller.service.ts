@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HTTP } from '@ionic-native/http/ngx';
-import { Storage } from '@ionic/storage';
-import { FilterhelperService } from './filterhelper.service';
+import { HTTP } from '@awesome-cordova-plugins/http/ngx';
+import { Storage } from '@ionic/storage-angular';
+import { FilterhelperService } from 'src/app/services/filterhelper.service';
 
 
 const API_STORAGE_KEY = 'pantryEntries';
@@ -35,25 +35,23 @@ export class ApicallerService {
    * @returns Promise of an array of parsed JSON data
    */
   async retrieveData(amOnline: boolean): Promise<any> {
-    // console.log('Calling retrieveData in apicaller.service');
-
     // Get the local data for later manipulation
     let results = await this.getLocalData();
-
+    //console.log("Getting data...")
     const countReponse = await this.nativeHttp
       .get(API_URL_COUNT, {}, {})
       .catch(error => {
-        // console.log('Error retrieving fresh data. Will try offline cache, ErrorMsg: ' + error);
+        console.log('Error retrieving fresh data. Will try offline cache, ErrorMsg: ' + error);
         return null;
       });
-
+    
     let checksumCount = JSON.parse(countReponse.data);
     checksumCount = Number.parseInt(checksumCount.count, 10);
 
-    const pullFreshData = !(results.length === checksumCount);
+    const pullFreshData = !( results && results.length === checksumCount);
 
     if (results === null || results === undefined || pullFreshData) {
-      // console.log('Error no local data found. Please go on line and refresh to get map data.');
+      //console.log('Error no local data found. Please go on line and refresh to get map data.');
       this.removeRefreshTime();
     }
 
@@ -87,7 +85,7 @@ export class ApicallerService {
       const apiResponse = await this.nativeHttp
         .get(finalUrl, {}, {})
         .catch(error => {
-          // console.log('Error retrieving fresh data. Will try offline cache, ErrorMsg: ' + error);
+          console.log('Error retrieving fresh data. Will try offline cache, ErrorMsg: ' + error);
           return null;
         });
 
@@ -96,6 +94,7 @@ export class ApicallerService {
       } else {
 
         const responseData = JSON.parse(apiResponse.data);
+        //console.log(responseData);
 
         if (pullFreshData) {
           console.log('Refreshing Data');
@@ -149,12 +148,12 @@ export class ApicallerService {
 
         this.storage.set(API_STORAGE_KEY, results).then((setResponse) => {
           this.setLastRefreshTime();
-          // console.log('setLocalData: Local Data set, entry count: ' + setResponse.length);
+          console.log('setLocalData: Local Data set, entry count: ' + setResponse.length);
           return setResponse;
         }).catch((error) => {
           console.log('setLocalData Error: ' + API_STORAGE_KEY + ' ', error);
         });
-
+        console.log('Refreshed Data! Returning new data.');
         return results;
       }
     }
@@ -165,14 +164,16 @@ export class ApicallerService {
       return null;
     } else {
       console.log('Found data! No need to retrieve fresh data');
+      //console.log(results);
       return results;
     }
 
   }
 
 
-  private calcDistance(item) {
+  public calcDistance(item) {
     const returnValue = this.filterhelper.getDistanceFromLatLonInMiles(item.lat, item.lng);
+    //const returnValue = 22.222
     return returnValue.toFixed(2);
   }
 
@@ -230,7 +231,7 @@ export class ApicallerService {
   }
 
   public async getFreshCategoryData(): Promise<any> {
-    console.log('Getting Fresh Category Data');
+    //console.log('Getting Fresh Category Data');
     const apiResponse = await this.nativeHttp
       .get(API_URL_CATEGORY, {}, {})
       .catch(error => {
@@ -260,7 +261,7 @@ export class ApicallerService {
 
         freshCategoryData.push(newCategory);
       });
-
+      
       return freshCategoryData;
     }
   }

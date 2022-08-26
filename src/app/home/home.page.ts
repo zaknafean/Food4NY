@@ -1,28 +1,24 @@
 import {
   Component,
-  OnInit
+  ElementRef,
+  OnInit,
+  ViewChild
 } from '@angular/core';
 import {
-  Platform
-} from '@ionic/angular';
-import {
-  GoogleMaps,
   GoogleMap,
-  GoogleMapsEvent,
   Marker,
-  GoogleMapsAnimation,
-  GoogleMapOptions,
-  GoogleMapsMapTypeId
-} from '@ionic-native/google-maps/ngx';
-import { ApicallerService } from './../services/apicaller.service';
+} from '@capacitor/google-maps';
+import { Platform } from '@ionic/angular';
+import { ApicallerService } from 'src/app/services/apicaller.service';
 import { ModalController } from '@ionic/angular';
 import { ActionSheetController } from '@ionic/angular';
-import { ActionhelperService } from '../services/actionhelper.service';
+import { ActionhelperService } from 'src/app/services/actionhelper.service';
 import { NgZone } from '@angular/core';
-import { FilterhelperService } from '../services/filterhelper.service';
-import { Network } from '@ionic-native/network/ngx';
+import { FilterhelperService } from 'src/app/services/filterhelper.service';
+import { Network } from '@awesome-cordova-plugins/network/ngx';
 import { LoadingController } from '@ionic/angular';
-import { FavoritehelperService } from '../services/favoritehelper.service';
+import { FavoritehelperService } from 'src/app/services/favoritehelper.service';
+import { environment } from 'src/environments/environment';
 
 
 @Component({
@@ -33,7 +29,7 @@ import { FavoritehelperService } from '../services/favoritehelper.service';
 
 
 export class HomePage implements OnInit {
-
+  @ViewChild('mapRef') mapRef: ElementRef;
   map: GoogleMap;
 
   public masterDataList: any = [];  // This array never changes
@@ -54,6 +50,9 @@ export class HomePage implements OnInit {
   public noSavedData = false;
   public loading: any;
   public amOnline = true;
+  public markerArray: Marker[];
+  public markerStrings: string[];
+
 
   customAlertOptionsCat: any = {
     header: 'Categories',
@@ -77,6 +76,66 @@ export class HomePage implements OnInit {
 
     // https://ionicallyspeaking.com/2017/01/17/ionic-2-ui-not-updating-after-change-to-model/
     this.zone = new NgZone({ enableLongStackTrace: false });
+    this.markerStrings = [];
+    this.markerArray = [];
+  }
+  
+
+  ionViewDidEnter() {
+    //this.createMap()
+  }
+
+
+  async createMap() {
+    await this.filterhelper.getMyLatLng();
+   
+    this.map = await GoogleMap.create({
+      id: 'mapRef',
+      element: this.mapRef.nativeElement,
+      apiKey: environment.mapsKey,
+      //forceCreate: true,
+      config: {
+        center: {
+          lat: this.filterhelper.startingLatLng.lat,
+          lng: this.filterhelper.startingLatLng.lng,
+        },
+        zoom: 15,
+      },
+    });
+    
+    this.map.enableCurrentLocation(true);
+
+    this.map.setOnMyLocationButtonClickListener(async (marker) => {
+      await this.filterhelper.getMyLatLng();
+
+      for (const curLocation of this.masterDataList) {
+        curLocation.distance = this.apiService.calcDistance(curLocation);
+      }
+
+      this.finalFilterPass();
+    });
+
+    this.map.setOnMarkerClickListener(async (marker) => {
+
+      await this.map.setCamera({
+        coordinate: {
+          lat: marker.latitude,
+          lng: marker.longitude
+        },
+        zoom: 15,
+        animate: true,
+        animationDuration: 1000
+      });
+      
+      this.presentActionSheet(marker);
+    });
+
+    console.log("Map Ready");
+  }
+
+  ngOnDestroy() {
+    console.log("boom")
+    this.map.destroy();
   }
 
   ngOnInit() {
@@ -98,15 +157,14 @@ export class HomePage implements OnInit {
     // Ensure device is ready to do stuff
     this.platform.ready().then(() => {
       console.log('Platform ready...');
+      this.createMap();
       this.presentInformation();
+      
     });
   }
 
   async presentInformation() {
     await this.presentLoading();
-
-    // First lets get your current location
-    await this.filterhelper.getMyLatLng();
 
     this.categoryData = await this.apiService.getFreshCategoryData();
     if (this.categoryData == null || this.categoryData === undefined || !this.amOnline) {
@@ -116,7 +174,6 @@ export class HomePage implements OnInit {
     }
 
     this.distanceData = this.filterhelper.getDistanceData();
-
 
     this.filterhelper.getChosenCategories().then((categoriesResult) => {
       if (!categoriesResult) {
@@ -145,7 +202,9 @@ export class HomePage implements OnInit {
         this.masterDataList = res;
 
         this.finalFilterPass();
-        this.loadMap();
+        //this.createMap();
+        //
+
       }
     }).catch((error) => {
       // console.log('HomePage Retrieval Error: ', error);
@@ -178,7 +237,6 @@ export class HomePage implements OnInit {
           if (this.searchFilter === '' || jsonString.indexOf(this.searchFilter.toLowerCase()) > -1) {
 
             if (this.categoryFilterString === '' || this.categoryFilterString.indexOf(curItem.subcategory.name.toLowerCase()) > -1) {
-
               return true;
             }
           }
@@ -188,7 +246,7 @@ export class HomePage implements OnInit {
       }
     });
 
-    // console.log('Local Arrays filtered. Final Count: ' + this.filterData.length);
+    console.log('Local Arrays filtered. Final Count: ' + this.filterData.length);
 
     this.populateMapMakers();
   }
@@ -232,43 +290,6 @@ export class HomePage implements OnInit {
     this.finalFilterPass();
   }
 
-  loadMap() {
-
-    const mapOptions: GoogleMapOptions = {
-      mapType: GoogleMapsMapTypeId.ROADMAP,
-
-      controls: {
-        compass: true,
-        myLocationButton: true,
-        myLocation: true,   // (blue dot)
-        zoom: true,          // android only
-      },
-      camera: {
-        target: {
-          lat: this.filterhelper.startingLatLng.lat,
-          lng: this.filterhelper.startingLatLng.lng
-        },
-        zoom: 18,
-        tilt: 30,
-      },
-    };
-
-    this.map = GoogleMaps.create('map_canvas', mapOptions);
-
-    this.map.on(GoogleMapsEvent.MAP_READY).subscribe(
-      (data) => {
-        console.log('Map Ready');
-        this.populateMapMakers();
-      }
-    );
-
-    this.map.on(GoogleMapsEvent.MY_LOCATION_BUTTON_CLICK).subscribe(
-      (data) => {
-        console.log('My Location Clicked');
-        // this.populateMapMakers();
-      }
-    );
-  }
 
   async populateMapMakers() {
     if (this.map == null) {
@@ -277,10 +298,24 @@ export class HomePage implements OnInit {
       return;
     }
 
-    this.map.clear();
-    this.map.setCameraZoom(15);
+    if (this.markerStrings.length > 0) {
+      console.log('removing old ones')
+      await this.map.removeMarkers(this.markerStrings);
+      this.markerStrings = [];
+    }
+
+    await this.map.setCamera({
+      zoom: 15,
+
+      coordinate: {
+        lat: this.filterhelper.startingLatLng.lat,
+        lng: this.filterhelper.startingLatLng.lng,
+      }
+
+    });
 
     console.log('Populating Markers. Total Markers: ' + this.filterData.length);
+    this.markerArray = [];
 
     for (const curLocation of this.filterData) {
 
@@ -289,116 +324,42 @@ export class HomePage implements OnInit {
         lng: curLocation.lng
       };
 
-      let myIcon = 'red';
-
-      if (curLocation.subcategory.name.toLowerCase() === 'food pantry') {
-        myIcon = 'blue';
-      } else if (curLocation.subcategory.name.toLowerCase() === 'children and youth program') {
-        myIcon = 'orange';
-      } else if (curLocation.subcategory.name.toLowerCase() === 'community meal/soup kitchen') {
-        myIcon = 'yellow';
-      } else if (curLocation.subcategory.name.toLowerCase() === 'coalition member') {
-        myIcon = 'cyan';
-      } else if (curLocation.subcategory.name.toLowerCase() === 'holiday meal') {
-        myIcon = 'green';
-      } else if (curLocation.subcategory.name.toLowerCase() === 'child care') {
-        myIcon = 'magenta';
-      } else if (curLocation.subcategory.name.toLowerCase() === 'clothing') {
-        myIcon = 'magenta';
-      } else if (curLocation.subcategory.name.toLowerCase() === 'disability services') {
-        myIcon = 'magenta';
-      } else if (curLocation.subcategory.name.toLowerCase() === 'emergency housing') {
-        myIcon = 'magenta';
-      } else if (curLocation.subcategory.name.toLowerCase() === 'family support') {
-        myIcon = 'magenta';
-      } else if (curLocation.subcategory.name.toLowerCase() === 'furniture') {
-        myIcon = 'magenta';
-      } else if (curLocation.subcategory.name.toLowerCase() === 'legal aid') {
-        myIcon = 'magenta';
-      } else if (curLocation.subcategory.name.toLowerCase() === 'self help & support') {
-        myIcon = 'magenta';
-      } else if (curLocation.subcategory.name.toLowerCase() === 'social services') {
-        myIcon = 'magenta';
-      } else if (curLocation.subcategory.name.toLowerCase() === 'medical assistance') {
-        myIcon = 'magenta';
-      } else if (curLocation.subcategory.name.toLowerCase() === 'senior center/meal service') {
-        myIcon = 'magenta';
-      } else if (curLocation.subcategory.name.toLowerCase() === 'senior services') {
-        myIcon = 'magenta';
-      } else if (curLocation.subcategory.name.toLowerCase() === 'veggie mobile sprout®') {
-        myIcon = 'magenta';
-      } else if (curLocation.subcategory.name.toLowerCase() === 'veggie mobile') {
-        myIcon = 'magenta';
-      } else if (curLocation.subcategory.name.toLowerCase() === 'snap (food stamp) registration assistance') {
-        myIcon = 'magenta';
-      } else if (curLocation.subcategory.name.toLowerCase() === 'wic office/sign up locations') {
-        myIcon = 'magenta';
-      }
-
-
       // add a marker
-      const marker: Marker = this.map.addMarkerSync({
+      let marker: Marker = {
         title: curLocation.name,
         snippet: curLocation.line_1 + ' ' + curLocation.city + ' ' + curLocation.state + ' ' + curLocation.zip,
 
-        position: curLatLng,
-        // animation: GoogleMapsAnimation.DROP, // https://github.com/mapsplugin/cordova-plugin-googlemaps/issues/853
-        icon: myIcon
-      });
+        coordinate: { lat: curLatLng.lat, lng: curLatLng.lng, }
+      };
 
 
-      this.map.getMyLocation();
+      let markerId = await this.map.addMarker(marker);
 
-      // show the infoWindow, this causes the last loaded marker to become the starting point
-      // marker.showInfoWindow();
-
-      marker.on(GoogleMapsEvent.INFO_CLICK).subscribe(() => {
-
-        // This zone thing makes sure the UI keeps up with changes to the model somehow
-        this.zone.run(() => {
-
-          // Move the map camera to the location with animation
-          this.map.animateCamera({
-            target: curLatLng,
-            zoom: 20,
-            duration: 1000
-          });
-
-          this.presentActionSheet(curLocation);
-        });
-
-      });
-
-      // If clicked it, display the alert
-      marker.on(GoogleMapsEvent.MARKER_CLICK).subscribe(() => {
-
-        // This zone thing makes sure the UI keeps up with changes to the model somehow
-        this.zone.run(() => {
-
-          // Move the map camera to the location with animation
-          this.map.animateCamera({
-            target: curLatLng,
-            zoom: 20,
-            duration: 1000
-          });
-
-          this.presentActionSheet(curLocation);
-        });
-
-      });
-
+      (await this.markerStrings).push(markerId);
     }
+
 
     await this.loading.dismiss();
   }
 
-  async presentActionSheet(selectedItem) {
 
-    if (selectedItem == null) {
+  async presentActionSheet(marker) {
+    if (marker == null) {
       return;
     }
-    this.favoriteService.isFavorite(selectedItem.id).then(async (favoriteResponse) => {
 
+    let selectedItem;
+
+    for (const curLocation of this.filterData) {
+      if (curLocation.lat == marker.latitude) {
+        if (curLocation.lng == marker.longitude) {
+          selectedItem = curLocation;
+          break;
+        }
+      }
+    }
+
+    this.favoriteService.isFavorite(selectedItem.id).then(async (favoriteResponse) => {
       const actionSheet = await this.actionSheetController.create({
         header: selectedItem.name,
         mode: 'ios',

@@ -1,13 +1,13 @@
 <ion-app>
-  <ion-split-pane contentId="main-content">
-    <ion-menu contentId="main-content" type="overlay">
+  <ion-split-pane contentId="main-content" >
+    <ion-menu contentId="main-content" type="overlay" class='android-bg-fix'>
       <ion-header>
         <ion-toolbar color="captain">
-          <ion-title>Food 4 NY Menu</ion-title>
+          <ion-title>Food 4 NY</ion-title>
         </ion-toolbar>
       </ion-header>
-      <ion-content>
 
+      <ion-content >
         <ion-list>
           <ion-menu-toggle auto-hide="false" *ngFor="let p of appPages; let i = index">
             <ion-item (click)="selectedIndex = i" routerDirection="root" [routerLink]="[p.url]" lines="none"

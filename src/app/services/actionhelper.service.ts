@@ -1,6 +1,6 @@
 import { Injectable, OnInit } from '@angular/core';
-import { CallNumber } from '@ionic-native/call-number/ngx';
-import { InAppBrowser, InAppBrowserOptions } from '@ionic-native/in-app-browser/ngx';
+import { CallNumber } from '@awesome-cordova-plugins/call-number/ngx';
+import { InAppBrowser, InAppBrowserOptions } from '@awesome-cordova-plugins/in-app-browser/ngx';
 import { FavoritehelperService } from './favoritehelper.service';
 
 @Injectable({

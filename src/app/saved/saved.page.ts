@@ -3,7 +3,7 @@ import { FavoritehelperService } from '../services/favoritehelper.service';
 import { ApicallerService } from '../services/apicaller.service';
 import { LoadingController, ActionSheetController } from '@ionic/angular';
 import { ActionhelperService } from '../services/actionhelper.service';
-import { Network } from '@ionic-native/network/ngx';
+import { Network } from '@awesome-cordova-plugins/network/ngx';
 
 @Component({
   selector: 'app-saved',

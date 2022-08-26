@@ -2,11 +2,16 @@ import { TestBed } from '@angular/core/testing';
 
 import { FilterhelperService } from './filterhelper.service';
 
+
 describe('FilterhelperService', () => {
-  beforeEach(() => TestBed.configureTestingModule({}));
+  let service: FilterhelperService;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({});
+    service = TestBed.inject(FilterhelperService);
+  });
 
   it('should be created', () => {
-    const service: FilterhelperService = TestBed.get(FilterhelperService);
     expect(service).toBeTruthy();
   });
 });

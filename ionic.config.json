@@ -1,8 +1,7 @@
 {
   "name": "Food4NY",
   "integrations": {
-    "cordova": {}
+    "capacitor": {}
   },
-  "type": "angular",
-  "id": "a88e9d47"
+  "type": "angular"
 }

@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActionSheetController, ModalController } from '@ionic/angular';
 import { ApicallerService } from './../services/apicaller.service';
 import { ActionhelperService } from '../services/actionhelper.service';
-import { Network } from '@ionic-native/network/ngx';
+import { Network } from '@awesome-cordova-plugins/network/ngx';
 import { FilterhelperService } from '../services/filterhelper.service';
 import { LoadingController } from '@ionic/angular';
 import { FavoritehelperService } from '../services/favoritehelper.service';
@@ -88,7 +88,7 @@ export class ListPage implements OnInit {
         this.currentCategoryValues = this.filterhelper.defaultCategoryValues;
         this.categoryFilterCount = this.currentCategoryValues.length;
       } else {
-        this.currentCategoryValues = categoriesResult;
+        this.currentCategoryValues = categoriesResult; 
         this.categoryFilterCount = this.currentCategoryValues.length;
       }
     });
