@@ -2,7 +2,8 @@ import {
   Component,
   ElementRef,
   OnInit,
-  ViewChild
+  ViewChild,
+  NgZone
 } from '@angular/core';
 import {
   GoogleMap,
@@ -13,12 +14,12 @@ import { ApicallerService } from 'src/app/services/apicaller.service';
 import { ModalController } from '@ionic/angular';
 import { ActionSheetController } from '@ionic/angular';
 import { ActionhelperService } from 'src/app/services/actionhelper.service';
-import { NgZone } from '@angular/core';
 import { FilterhelperService } from 'src/app/services/filterhelper.service';
 import { Network } from '@awesome-cordova-plugins/network/ngx';
 import { LoadingController } from '@ionic/angular';
 import { FavoritehelperService } from 'src/app/services/favoritehelper.service';
 import { environment } from 'src/environments/environment';
+import { Geolocation } from '@capacitor/geolocation';
 
 
 @Component({
@@ -39,8 +40,6 @@ export class HomePage implements OnInit {
   public categoryFilter = '';
   public categoryFilterString = '';
   public distanceFilter = 20;
-
-  zone: NgZone;
 
   public categoryData = [];
   public distanceData = [];
@@ -71,24 +70,16 @@ export class HomePage implements OnInit {
     private platform: Platform, private apiService: ApicallerService, private actionhelper: ActionhelperService,
     public modalController: ModalController, public actionSheetController: ActionSheetController,
     private favoriteService: FavoritehelperService, private filterhelper: FilterhelperService,
-    private network: Network, public loadingController: LoadingController
+    private network: Network, public loadingController: LoadingController, public ngZone: NgZone
   ) {
-
-    // https://ionicallyspeaking.com/2017/01/17/ionic-2-ui-not-updating-after-change-to-model/
-    this.zone = new NgZone({ enableLongStackTrace: false });
     this.markerStrings = [];
     this.markerArray = [];
   }
   
 
-  ionViewDidEnter() {
-    //this.createMap()
-  }
-
-
   async createMap() {
     await this.filterhelper.getMyLatLng();
-   
+
     this.map = await GoogleMap.create({
       id: 'mapRef',
       element: this.mapRef.nativeElement,
@@ -107,12 +98,7 @@ export class HomePage implements OnInit {
 
     this.map.setOnMyLocationButtonClickListener(async (marker) => {
       await this.filterhelper.getMyLatLng();
-
-      for (const curLocation of this.masterDataList) {
-        curLocation.distance = this.apiService.calcDistance(curLocation);
-      }
-
-      this.finalFilterPass();
+      this.presentInformation();
     });
 
     this.map.setOnMarkerClickListener(async (marker) => {
@@ -139,6 +125,13 @@ export class HomePage implements OnInit {
   }
 
   ngOnInit() {
+    this.platform.ready().then(() => {
+    console.log('Platform ready...');
+    });
+  }
+
+  ionViewDidEnter () {
+    console.log('View ready...');
     const disconnectSubscription = this.network.onDisconnect().subscribe(() => {
       console.log('network was disconnected :-(');
       this.amOnline = false;
@@ -153,19 +146,16 @@ export class HomePage implements OnInit {
         this.amOnline = true;
       }, 3000);
     });
+    
 
     // Ensure device is ready to do stuff
-    this.platform.ready().then(() => {
-      console.log('Platform ready...');
       this.createMap();
       this.presentInformation();
-      
-    });
   }
-
+ 
   async presentInformation() {
     await this.presentLoading();
-
+    
     this.categoryData = await this.apiService.getFreshCategoryData();
     if (this.categoryData == null || this.categoryData === undefined || !this.amOnline) {
       this.categoryData = this.filterhelper.getCategoryData();
@@ -173,7 +163,7 @@ export class HomePage implements OnInit {
       this.filterhelper.setCategoryData(this.categoryData);
     }
 
-    this.distanceData = this.filterhelper.getDistanceData();
+    this.distanceData = await this.filterhelper.getDistanceData();
 
     this.filterhelper.getChosenCategories().then((categoriesResult) => {
       if (!categoriesResult) {
@@ -185,7 +175,7 @@ export class HomePage implements OnInit {
       }
     });
 
-    this.filterhelper.getChosenDistance().then((distanceResult) => {
+    await this.filterhelper.getChosenDistance().then((distanceResult) => {
       if (!distanceResult) {
         this.distanceFilter = 20;
       } else {
@@ -193,7 +183,7 @@ export class HomePage implements OnInit {
       }
     });
 
-    this.apiService.retrieveData(this.amOnline).then((res) => {
+    await this.apiService.retrieveData(this.amOnline).then((res) => {
 
       if (!res) {
         this.noSavedData = true;
@@ -229,9 +219,9 @@ export class HomePage implements OnInit {
     this.filterData = this.masterDataList.filter(curItem => {
       // Organization is required. This is a sanity check if it doesn't show up
       if (curItem.name) {
-
+        
         if (curItem.distance && curItem.distance < this.distanceFilter) {
-
+          
           const jsonString = JSON.stringify(curItem).toLowerCase();
 
           if (this.searchFilter === '' || jsonString.indexOf(this.searchFilter.toLowerCase()) > -1) {
@@ -299,7 +289,7 @@ export class HomePage implements OnInit {
     }
 
     if (this.markerStrings.length > 0) {
-      console.log('removing old ones')
+      console.log('removing old ones: ', this.markerStrings.length);
       await this.map.removeMarkers(this.markerStrings);
       this.markerStrings = [];
     }
@@ -313,7 +303,8 @@ export class HomePage implements OnInit {
       }
 
     });
-
+    console.log('1: ' + this.filterhelper.startingLatLng.lat);
+    console.log('2: ' + this.filterhelper.startingLatLng.lng);
     console.log('Populating Markers. Total Markers: ' + this.filterData.length);
     this.markerArray = [];
 

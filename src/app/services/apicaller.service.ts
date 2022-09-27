@@ -51,7 +51,7 @@ export class ApicallerService {
     const pullFreshData = !( results && results.length === checksumCount);
 
     if (results === null || results === undefined || pullFreshData) {
-      //console.log('Error no local data found. Please go on line and refresh to get map data.');
+      console.log('Error no local data found. Please go on line and refresh to get map data.');
       this.removeRefreshTime();
     }
 
@@ -77,7 +77,7 @@ export class ApicallerService {
     }
 
     // If we are online, see if there have been updates since last we were on
-    // console.log('If test: ' + amOnline, ' and (' + !hasPulledToday + ' or ' + pullFreshData + ')');
+    //console.log('If test: ' + amOnline, ' and (' + !hasPulledToday + ' or ' + pullFreshData + ')');
     if (amOnline && (!hasPulledToday || pullFreshData)) {
 
       // console.log('Retrieving new data from: ' + finalUrl);
@@ -157,6 +157,36 @@ export class ApicallerService {
         return results;
       }
     }
+    else {
+      results = results.map(item => {
+        const returnArray = {
+          id: -1, line_1: '', city: '', state: 'NY', zip: '', phone: '5555555',
+          name: 'n/a', hours_of_operation: 'n/a', lat: 0.000000, lng: 0.000000,
+          subcategory: '1', website: 'n/a', info: '', last_updated: 'n/a',
+          organization: 'n/a', distance: ''
+        };
+
+        returnArray.id = item.id;
+        returnArray.line_1 = item.line_1;
+        returnArray.city = item.city;
+        returnArray.state = item.line_1;
+        returnArray.zip = item.zip;
+        returnArray.phone = item.phone;
+        returnArray.name = item.name;
+        returnArray.hours_of_operation = item.hours_of_operation;
+        returnArray.lat = item.lat;
+        returnArray.lng = item.lng;
+        returnArray.subcategory = item.subcategory;
+        returnArray.website = item.website;
+        returnArray.info = item.info;
+        returnArray.last_updated = item.last_updated;
+        returnArray.organization = item.organization;
+
+        returnArray.distance = this.calcDistance(returnArray);
+
+        return returnArray;
+      });
+    }
 
     if (results === null || results === undefined) {
       // console.log('Error no local data found. Please go on line and refresh to get map data.');
@@ -172,8 +202,9 @@ export class ApicallerService {
 
 
   public calcDistance(item) {
-    const returnValue = this.filterhelper.getDistanceFromLatLonInMiles(item.lat, item.lng);
+    let returnValue = this.filterhelper.getDistanceFromLatLonInMiles(item.lat, item.lng);
     //const returnValue = 22.222
+    //console.log(item.name, ' recalced to ', returnValue)
     return returnValue.toFixed(2);
   }
 
