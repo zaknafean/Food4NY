@@ -20,6 +20,7 @@ import { LoadingController } from '@ionic/angular';
 import { FavoritehelperService } from 'src/app/services/favoritehelper.service';
 import { environment } from 'src/environments/environment';
 import { Geolocation } from '@capacitor/geolocation';
+import { LatLng } from '@capacitor/google-maps/dist/typings/definitions';
 
 
 @Component({
@@ -76,6 +77,10 @@ export class HomePage implements OnInit {
     this.markerArray = [];
   }
   
+  async refreshMap() {
+    await this.filterhelper.getMyLatLng();
+    this.presentInformation();
+  }
 
   async createMap() {
     await this.filterhelper.getMyLatLng();
@@ -97,8 +102,7 @@ export class HomePage implements OnInit {
     this.map.enableCurrentLocation(true);
 
     this.map.setOnMyLocationButtonClickListener(async (marker) => {
-      await this.filterhelper.getMyLatLng();
-      this.presentInformation();
+      this.refreshMap();
     });
 
     this.map.setOnMarkerClickListener(async (marker) => {
@@ -309,10 +313,10 @@ export class HomePage implements OnInit {
     this.markerArray = [];
 
     for (const curLocation of this.filterData) {
-
-      const curLatLng: any = {
-        lat: curLocation.lat,
-        lng: curLocation.lng
+      
+      const curLatLng: LatLng = {
+        lat: Number(curLocation.lat),
+        lng: Number(curLocation.lng),
       };
 
       // add a marker

@@ -1,0 +1,11 @@
+{
+    "/api": {
+        "target": "https://map.thefoodpantries.org/api/entities",
+        "secure": false,
+        "pathRewrite": {
+            "^/api": ""
+        },
+        "changeOrigin": true,
+        "logLevel": "debug"
+    }
+}

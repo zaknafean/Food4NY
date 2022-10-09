@@ -30,8 +30,16 @@
         </ion-select>
       </ion-col>
     </ion-row>
-    <ion-row>
+    <ion-row style="display:flex; justify-content: space-between;">
+      <div>
       Showing {{filterData.length}} of {{masterDataList.length}}
+      </div>
+      <div>
+        <ion-button>
+          <ion-icon name="compass-outline"></ion-icon>
+          Refresh Position
+        </ion-button>
+      </div>
     </ion-row>
   </ion-grid>
 </ion-header>
